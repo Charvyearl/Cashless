@@ -16,6 +16,7 @@ interface MenuItemRow {
   prepTimeMin: number;
 }
 
+
 const currency = (amount: number) =>
   new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
@@ -88,6 +89,7 @@ const CanteenDashboard: React.FC = () => {
     load();
   }, []);
 
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -101,9 +103,12 @@ const CanteenDashboard: React.FC = () => {
             <ArrowPathIcon className="w-5 h-5" />
             Refresh
           </button>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800">
+          <button 
+            onClick={() => navigate('/canteen/order')}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800"
+          >
             <PlusIcon className="w-5 h-5" />
-            Manual Order
+             Order
           </button>
         </div>
       </div>
@@ -242,7 +247,7 @@ const CanteenDashboard: React.FC = () => {
           </table>
         </div>
       </div>
-      {/* Modal removed: we redirect to /canteen/add */}
+
     </div>
   );
 };

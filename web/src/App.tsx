@@ -5,6 +5,7 @@ import ProtectedRoute from './components/Auth/ProtectedRoute';
 import Layout from './components/Layout/Layout';
 import Dashboard from './pages/Dashboard';
 import CanteenDashboard from './pages/CanteenDashboard';
+import CreateOrder from './pages/CreateOrder';
 import AddProduct from './pages/AddProduct';
 import EditProduct from './pages/EditProduct';
 import Login from './pages/Login';
@@ -36,6 +37,7 @@ const AppRoutes: React.FC = () => {
       }>
         <Route index element={user?.user_type === 'staff' ? <CanteenDashboard /> : <Dashboard />} />
         <Route path="canteen" element={<CanteenDashboard />} />
+        <Route path="canteen/order" element={<CreateOrder />} />
         <Route path="canteen/add" element={<AddProduct />} />
         <Route path="canteen/edit/:id" element={<EditProduct />} />
         <Route path="users" element={<Users />} />

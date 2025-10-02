@@ -12,6 +12,7 @@ const transactionRoutes = require('./routes/transactions');
 const menuRoutes = require('./routes/menu');
 const adminRoutes = require('./routes/admin');
 const rfidRoutes = require('./routes/rfid');
+const canteenOrderRoutes = require('./routes/canteenOrders');
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/menu', menuRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/rfid', rfidRoutes);
+app.use('/api/canteen-orders', canteenOrderRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {

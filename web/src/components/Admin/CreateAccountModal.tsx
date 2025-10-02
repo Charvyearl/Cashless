@@ -102,17 +102,27 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
     setScanning(true);
     setScanComplete(false);
     const startedAt = Date.now();
+    
+    // Clear any previous RFID data first
+    setFormData(prev => ({ ...prev, rfid_card_id: '' }));
+    
     const poll = async () => {
       try {
         const res = await rfidAPI.getLatest();
         const latest = res?.data?.data;
-        if (latest?.rfid_card_id) {
-          setFormData(prev => ({ ...prev, rfid_card_id: latest.rfid_card_id }));
-          setScanComplete(true);
-          setScanning(false);
-          return;
+        
+        // Only accept RFID scans that happened AFTER we started scanning
+        if (latest?.rfid_card_id && latest?.scanned_at) {
+          const scanTime = new Date(latest.scanned_at).getTime();
+          if (scanTime >= startedAt) {
+            setFormData(prev => ({ ...prev, rfid_card_id: latest.rfid_card_id }));
+            setScanComplete(true);
+            setScanning(false);
+            return;
+          }
         }
       } catch (_) {}
+      
       if (Date.now() - startedAt < 60_000) {
         const id = window.setTimeout(poll, 800);
         setPollTimer(id);
@@ -181,6 +191,25 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
     if (pollTimer) window.clearTimeout(pollTimer);
     onClose();
   };
+
+  // Reset form when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        rfid_card_id: '',
+        first_name: '',
+        last_name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        balance: 0
+      });
+      setScanning(false);
+      setScanComplete(false);
+      setError(null);
+      setSessionId(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

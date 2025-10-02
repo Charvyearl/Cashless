@@ -233,4 +233,25 @@ export const adminAPI = {
     api.delete(`/admin/personnel/${id}`),
 };
 
+// Canteen Orders API
+export const canteenOrdersAPI = {
+  createOrder: (data: { items: Array<{ product_id: number; quantity: number }>; customer_rfid?: string }) =>
+    api.post('/canteen-orders/create', data),
+  
+  completeOrder: (transactionId: number, data: { customer_rfid: string }) =>
+    api.post(`/canteen-orders/${transactionId}/complete`, data),
+  
+  getOrders: (params?: { page?: number; limit?: number; start_date?: string; end_date?: string; status?: string; user_id?: number; personnel_id?: number }) =>
+    api.get('/canteen-orders', { params }),
+  
+  getOrderDetails: (transactionId: number) =>
+    api.get(`/canteen-orders/${transactionId}`),
+  
+  cancelOrder: (transactionId: number) =>
+    api.post(`/canteen-orders/${transactionId}/cancel`),
+  
+  verifyRFID: (rfidCardId: string) =>
+    api.post('/canteen-orders/verify-rfid', { rfid_card_id: rfidCardId }),
+};
+
 export default api;
