@@ -90,8 +90,8 @@ export const walletsAPI = {
   getTransactions: (params?: { page?: number; limit?: number; start_date?: string; end_date?: string; type?: string }) =>
     api.get('/wallets/transactions', { params }),
   
-  topUp: (userId: number, amount: number, description?: string) =>
-    api.post('/wallets/top-up', { amount, description }, { params: { user_id: userId } }),
+  topUp: (userId: number, amount: number, description?: string, accountType: 'student' | 'personnel' = 'student') =>
+    api.post(`/admin/${accountType === 'student' ? 'students' : 'personnel'}/${userId}/add-money`, { amount, description }),
   
   transfer: (recipientRfid: string, amount: number, description?: string) =>
     api.post('/wallets/transfer', { recipient_rfid: recipientRfid, amount, description }),

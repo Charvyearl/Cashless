@@ -3,6 +3,16 @@
 CREATE DATABASE IF NOT EXISTS cashless_canteen;
 USE cashless_canteen;
 
+-- Categories table for product categories
+CREATE TABLE IF NOT EXISTS categories (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- Products table for canteen menu and inventory
 CREATE TABLE IF NOT EXISTS PRODUCT (
     product_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -106,6 +116,13 @@ FOREIGN KEY (transaction_id) REFERENCES TRANSACTIONS(transaction_id) ON DELETE C
 ALTER TABLE TRANSACTION_ITEMS 
 ADD CONSTRAINT fk_transaction_items_product_id 
 FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id) ON DELETE CASCADE;
+
+-- Insert default categories
+INSERT INTO categories (name, description) VALUES 
+('Food', 'Main dishes and meals'),
+('Beverage', 'Drinks and beverages'),
+('Snacks', 'Light snacks and treats')
+ON DUPLICATE KEY UPDATE name = name;
 
 -- Insert default system settings
 INSERT INTO system_settings (setting_key, setting_value, description) VALUES

@@ -13,7 +13,6 @@ import Login from './pages/Login';
 import Users from './pages/Users';
 import Menu from './pages/Menu';
 import Transactions from './pages/Transactions';
-import Wallets from './pages/Wallets';
 const Settings = () => <div className="p-6"><h1 className="text-2xl font-bold">Settings</h1><p>Coming soon...</p></div>;
 
 const AppRoutes: React.FC = () => {
@@ -41,7 +40,6 @@ const AppRoutes: React.FC = () => {
         <Route path="canteen/add" element={<AddProduct />} />
         <Route path="canteen/edit/:id" element={<EditProduct />} />
         <Route path="users" element={<Users />} />
-        <Route path="wallets" element={<Wallets />} />
         <Route path="transactions" element={<Transactions />} />
         <Route path="menu" element={<Menu />} />
         <Route path="settings" element={<Settings />} />

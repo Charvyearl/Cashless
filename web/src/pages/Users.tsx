@@ -1,89 +1,91 @@
-import React, { useState, useEffect } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, AcademicCapIcon, UserIcon } from '@heroicons/react/24/outline';
-import { User, Student, Personnel } from '../types';
+import React, { useState } from 'react';
+import { PlusIcon, AcademicCapIcon, UserIcon } from '@heroicons/react/24/outline';
+import { Student, Personnel } from '../types';
 import CreateAccountModal from '../components/Admin/CreateAccountModal';
+import EditAccountModal from '../components/Admin/EditAccountModal';
+import AddMoneyModal from '../components/Admin/AddMoneyModal';
 import AccountList from '../components/Admin/AccountList';
 import { useAuth } from '../contexts/AuthContext';
+import { adminAPI } from '../services/api';
 
 const Users: React.FC = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showAddMoneyModal, setShowAddMoneyModal] = useState(false);
+  const [selectedAccount, setSelectedAccount] = useState<Student | Personnel | null>(null);
   const [activeTab, setActiveTab] = useState<'students' | 'personnel'>('students');
 
-  const handleCreateSuccess = () => {
-    // Refresh will be handled by the AccountList components
-    console.log('Account created successfully');
+  const handleEdit = (account: Student | Personnel) => {
+    setSelectedAccount(account);
+    setShowEditModal(true);
   };
 
-  const handleEdit = (account: Student | Personnel) => {
-    // Handle edit functionality
-    console.log('Edit account:', account);
+  const handleAddMoney = (account: Student | Personnel) => {
+    setSelectedAccount(account);
+    setShowAddMoneyModal(true);
   };
 
   const handleDelete = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this account?')) {
+    console.log('Delete clicked for ID:', id, 'Type:', activeTab);
+    if (window.confirm('Delete this account?')) {
       try {
-        console.log('Deleting account:', id);
-        // The AccountList component will handle the actual deletion
-      } catch (error) {
-        console.error('Failed to delete account:', error);
+        if (activeTab === 'students') {
+          console.log('Calling deleteStudent with ID:', id);
+          const response = await adminAPI.deleteStudent(id);
+          console.log('Delete response:', response.data);
+        } else {
+          console.log('Calling deletePersonnel with ID:', id);
+          const response = await adminAPI.deletePersonnel(id);
+          console.log('Delete response:', response.data);
+        }
+        console.log('Delete successful!');
+        alert('Account deleted successfully!');
+        // Don't auto-refresh - let user see the console logs
+        // window.location.reload();
+      } catch (err: any) {
+        console.error('Delete failed:', err);
+        console.error('Error details:', err.response?.data);
+        alert('Delete failed: ' + (err.response?.data?.message || err.message));
       }
     }
   };
 
-  const handleView = (account: Student | Personnel) => {
-    // Handle view functionality
-    console.log('View account:', account);
-  };
-
-  // Debug authentication state
-  useEffect(() => {
-    console.log('Users page - isAuthenticated:', isAuthenticated);
-    console.log('Users page - user:', user);
-    console.log('Users page - token:', localStorage.getItem('token'));
-  }, [isAuthenticated, user]);
 
   if (!isAuthenticated) {
     return (
-      <div className="space-y-6">
-        <div className="text-center py-12">
-          <p className="text-gray-500">Please log in to access account management</p>
-        </div>
+      <div className="text-center py-12">
+        <p className="text-gray-500">Please log in to access account management</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Simple Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Account Management</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage student and personnel accounts
-          </p>
+          <p className="text-gray-500">Manage student and personnel accounts</p>
         </div>
         <button
-          onClick={() => {
-            console.log('Create Account button clicked, setting showCreateModal to true');
-            setShowCreateModal(true);
-          }}
-           className="flex items-center px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700 transition-all duration-200 shadow-[0_4px_14px_0_rgba(0,0,0,0.3)] hover:shadow-[0_6px_20px_0_rgba(0,0,0,0.4)] border-2 border-black"
+          onClick={() => setShowCreateModal(true)}
+          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
         >
           <PlusIcon className="w-5 h-5 mr-2" />
           Create Account
         </button>
       </div>
 
-      {/* Tab Navigation */}
+      {/* Simple Tab Navigation */}
       <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+        <nav className="flex space-x-8">
           <button
             onClick={() => setActiveTab('students')}
             className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center ${
               activeTab === 'students'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
             <AcademicCapIcon className="h-5 w-5 mr-2" />
@@ -94,7 +96,7 @@ const Users: React.FC = () => {
             className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center ${
               activeTab === 'personnel'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                : 'border-transparent text-gray-500 hover:text-gray-700'
             }`}
           >
             <UserIcon className="h-5 w-5 mr-2" />
@@ -103,13 +105,13 @@ const Users: React.FC = () => {
         </nav>
       </div>
 
-      {/* Tab Content */}
+      {/* Simple Content */}
       {activeTab === 'students' && (
         <AccountList
           accountType="student"
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onView={handleView}
+          onAddMoney={handleAddMoney}
         />
       )}
 
@@ -118,15 +120,37 @@ const Users: React.FC = () => {
           accountType="personnel"
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onView={handleView}
+          onAddMoney={handleAddMoney}
         />
       )}
 
-      {/* Create Account Modal */}
+      {/* Simple Modals */}
       <CreateAccountModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onSuccess={handleCreateSuccess}
+        onSuccess={() => setShowCreateModal(false)}
+      />
+
+      <EditAccountModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setSelectedAccount(null);
+        }}
+        account={selectedAccount}
+        accountType={activeTab === 'students' ? 'student' : 'personnel'}
+        onSuccess={() => setShowEditModal(false)}
+      />
+
+      <AddMoneyModal
+        isOpen={showAddMoneyModal}
+        onClose={() => {
+          setShowAddMoneyModal(false);
+          setSelectedAccount(null);
+        }}
+        account={selectedAccount}
+        accountType={activeTab === 'students' ? 'student' : 'personnel'}
+        onSuccess={() => setShowAddMoneyModal(false)}
       />
     </div>
   );

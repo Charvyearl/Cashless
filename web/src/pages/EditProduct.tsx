@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { menuAPI } from '../services/api';
+import { PlusIcon } from '@heroicons/react/24/outline';
 
 const EditProduct: React.FC = () => {
   const { id } = useParams();
@@ -14,6 +15,58 @@ const EditProduct: React.FC = () => {
     stock_quantity: '0',
     description: ''
   });
+  const [categories, setCategories] = useState<{id: number, name: string}[]>([]);
+  const [newCategory, setNewCategory] = useState('');
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // Load categories from database
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await menuAPI.getCategories();
+        setCategories(response.data.data || []);
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+        // Fallback to default categories
+        setCategories([
+          { id: 1, name: 'Food' },
+          { id: 2, name: 'Beverage' },
+          { id: 3, name: 'Snacks' }
+        ]);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    loadCategories();
+  }, []);
+
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) return;
+    
+    // Check if category already exists
+    const exists = categories.some(cat => cat.name.toLowerCase() === newCategory.trim().toLowerCase());
+    if (exists) {
+      alert('Category already exists');
+      return;
+    }
+
+    try {
+      const response = await menuAPI.createCategory({
+        name: newCategory.trim(),
+        description: ''
+      });
+      
+      const newCategoryData = response.data.data;
+      setCategories([...categories, newCategoryData]);
+      setForm({ ...form, category: newCategoryData.name });
+      setNewCategory('');
+      setShowAddCategory(false);
+    } catch (error: any) {
+      console.error('Failed to create category:', error);
+      alert(error.response?.data?.message || 'Failed to create category');
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -86,7 +139,57 @@ const EditProduct: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">Category</label>
-              <input value={form.category} onChange={(e)=>setForm({ ...form, category: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+              <div className="flex gap-2">
+                <select
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value })}
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  required
+                  disabled={loadingCategories}
+                >
+                  <option value="">{loadingCategories ? 'Loading categories...' : 'Select category'}</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.name}>{cat.name}</option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCategory(!showAddCategory)}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-1"
+                >
+                  <PlusIcon className="h-4 w-4" />
+                  Add
+                </button>
+              </div>
+              {showAddCategory && (
+                <div className="mt-2 flex gap-2">
+                  <input
+                    type="text"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    placeholder="New category name"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddCategory}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                  >
+                    Add
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddCategory(false);
+                      setNewCategory('');
+                    }}
+                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">Stock Quantity</label>

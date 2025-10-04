@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { 
   HomeIcon, 
   UsersIcon, 
-  CreditCardIcon, 
   ChartBarIcon, 
   ShoppingBagIcon,
   CogIcon,
@@ -16,7 +15,6 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Canteen', href: '/canteen', icon: BuildingStorefrontIcon },
   { name: 'Users', href: '/users', icon: UsersIcon },
-  { name: 'Wallets', href: '/wallets', icon: CreditCardIcon },
   { name: 'Transactions', href: '/transactions', icon: ChartBarIcon },
   { name: 'Menu', href: '/menu', icon: ShoppingBagIcon },
   { name: 'Settings', href: '/settings', icon: CogIcon },
