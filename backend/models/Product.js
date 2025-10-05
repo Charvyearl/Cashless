@@ -7,6 +7,7 @@ class Product {
     this.description = data.description;
     this.price = parseFloat(data.price);
     this.category = data.category;
+    this.category_id = data.category_id || null;
     this.stock_quantity = data.stock_quantity;
     this.is_available = data.is_available;
     this.created_at = data.created_at;
@@ -16,12 +17,12 @@ class Product {
   static async create(data) {
     const [result] = await pool.execute(
       `INSERT INTO PRODUCT (product_name, description, price, category, stock_quantity, is_available)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+       VALUES (?, ?, ?, (SELECT name FROM categories WHERE id = ?), ?, ?)`,
       [
         data.product_name,
         data.description || null,
         data.price,
-        data.category,
+        data.category_id || null,
         data.stock_quantity ?? 0,
         data.is_available !== undefined ? data.is_available : true
       ]
@@ -35,42 +36,51 @@ class Product {
   }
 
   static async findAll(options = {}) {
-    const { category, available_only } = options;
-    let query = 'SELECT * FROM PRODUCT WHERE 1=1';
+    const { category_id, category, available_only } = options;
+    let query = 'SELECT p.*, c.id as category_id FROM PRODUCT p LEFT JOIN categories c ON p.category = c.name WHERE 1=1';
     const params = [];
+    if (category_id) {
+      query += ' AND c.id = ?';
+      params.push(category_id);
+    }
     if (category) {
-      query += ' AND category = ?';
+      query += ' AND p.category = ?';
       params.push(category);
     }
     if (available_only) {
-      query += ' AND is_available = TRUE';
+      query += ' AND p.is_available = TRUE';
     }
-    query += ' ORDER BY product_name ASC';
+    query += ' ORDER BY p.product_name ASC';
     const [rows] = await pool.execute(query, params);
     return rows.map(r => new Product(r));
   }
 
   static async search(searchTerm, options = {}) {
-    const { category } = options;
-    let query = 'SELECT * FROM PRODUCT WHERE product_name LIKE ? OR description LIKE ?';
+    const { category_id } = options;
+    let query = 'SELECT p.*, c.id as category_id FROM PRODUCT p LEFT JOIN categories c ON p.category = c.name WHERE p.product_name LIKE ? OR p.description LIKE ?';
     const params = [`%${searchTerm}%`, `%${searchTerm}%`];
-    if (category) {
-      query += ' AND category = ?';
-      params.push(category);
+    if (category_id) {
+      query += ' AND c.id = ?';
+      params.push(category_id);
     }
-    query += ' ORDER BY product_name ASC';
+    query += ' ORDER BY p.product_name ASC';
     const [rows] = await pool.execute(query, params);
     return rows.map(r => new Product(r));
   }
 
   async update(updateData) {
-    const allowed = ['product_name', 'description', 'price', 'category', 'stock_quantity', 'is_available'];
+    const allowed = ['product_name', 'description', 'price', 'category', 'stock_quantity', 'is_available', 'category_id'];
     const sets = [];
     const values = [];
     for (const [k, v] of Object.entries(updateData)) {
       if (allowed.includes(k) && v !== undefined) {
-        sets.push(`${k} = ?`);
-        values.push(v);
+        if (k === 'category_id') {
+          sets.push('category = (SELECT name FROM categories WHERE id = ?)');
+          values.push(v);
+        } else {
+          sets.push(`${k} = ?`);
+          values.push(v);
+        }
       }
     }
     if (sets.length === 0) throw new Error('No valid fields to update');

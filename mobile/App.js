@@ -1,4 +1,4 @@
-  import React, { useState } from 'react';
+  import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { 
   StyleSheet, 
@@ -8,10 +8,10 @@ import {
   ImageBackground,
   Image,
   Dimensions,
-  SafeAreaView,
   Alert,
   TextInput
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Dashboard from './src/screens/Dashboard';
 import PersonnelDashboard from './src/screens/PersonnelDashboard';
 import { authAPI, setAuthToken, getBaseUrl } from './src/api/client';
@@ -27,6 +27,32 @@ export default function App() {
   const [authToken, setAuthTokenState] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [initialBalance, setInitialBalance] = useState(0);
+  const [backendStatus, setBackendStatus] = useState(null); // 'ok' | 'fail' | null
+
+  // On app start, verify backend connectivity
+  useEffect(() => {
+    let isMounted = true;
+    const ping = async () => {
+      try {
+        const url = `${getBaseUrl()}/health`;
+        const res = await fetch(url);
+        if (!isMounted) return;
+        if (res.ok) {
+          setBackendStatus('ok');
+          Alert.alert('Connected', 'You are connected to backend');
+        } else {
+          setBackendStatus('fail');
+          Alert.alert('Connection failed', 'Cannot reach backend');
+        }
+      } catch (_) {
+        if (!isMounted) return;
+        setBackendStatus('fail');
+        Alert.alert('Connection failed', 'Cannot reach backend');
+      }
+    };
+    ping();
+    return () => { isMounted = false; };
+  }, []);
 
   const handleRoleSelect = (role) => {
     if (selectedRole === role) {
@@ -39,27 +65,50 @@ export default function App() {
   };
 
   const handleLogin = async () => {
-    if (!username) {
-      Alert.alert('Error', 'Enter any ID to continue (auth disabled)');
+    if (!username || !password) {
+      Alert.alert('Error', 'Please enter your email and password');
       return;
     }
-    // Auth bypass: create a placeholder user and proceed
-    const fakeUser = {
-      id: 0,
-      rfid_card_id: username.trim(),
-      student_id: currentScreen === 'student' ? username.trim() : undefined,
-      first_name: currentScreen === 'student' ? 'Student' : 'Personnel',
-      last_name: 'User',
-      user_type: currentScreen === 'student' ? 'student' : 'staff',
-    };
-    setAuthToken();
-    setAuthTokenState(null);
-    setCurrentUser(fakeUser);
-    setInitialBalance(0);
-    if (currentScreen === 'student') {
-      setCurrentScreen('student-dashboard');
-    } else if (currentScreen === 'personnel') {
-      setCurrentScreen('personnel-dashboard');
+    try {
+      const res = await authAPI.loginWithEmail(username.trim(), password);
+      if (!res?.success) {
+        throw new Error(res?.message || 'Login failed');
+      }
+
+      const token = res?.data?.token;
+      const user = res?.data?.user;
+      const balance = res?.data?.wallet?.balance ?? 0;
+
+      if (!token || !user) {
+        throw new Error('Invalid login response');
+      }
+
+      setAuthToken(token);
+      setAuthTokenState(token);
+      setCurrentUser(user);
+      setInitialBalance(Number(balance) || 0);
+
+      const type = String(user.user_type || '').toLowerCase();
+      if (type === 'student') {
+        setCurrentScreen('student-dashboard');
+      } else if (type === 'personnel' || type === 'staff' || type === 'admin') {
+        setCurrentScreen('personnel-dashboard');
+      } else {
+        // Default to student dashboard if unknown type
+        setCurrentScreen('student-dashboard');
+      }
+    } catch (err) {
+      const status = err?.response?.status;
+      const msg = err?.response?.data?.message || err?.message || 'Unable to login. Please try again.';
+      Alert.alert('Login failed', `${msg}${status ? ` (HTTP ${status})` : ''}`);
+      // Dev log
+      console.log('Login error details:', {
+        baseUrl: getBaseUrl(),
+        status,
+        data: err?.response?.data,
+        url: err?.config?.url,
+        method: err?.config?.method,
+      });
     }
   };
 
@@ -155,16 +204,17 @@ export default function App() {
         <Text style={styles.loginTitle}>Login</Text>
         <Text style={styles.roleSubtitle}>as {currentScreen.charAt(0).toUpperCase() + currentScreen.slice(1)}</Text>
         
-        {/* Username Input */}
+        {/* Email Input */}
         <View style={styles.inputContainer}>
           <Text style={styles.inputIcon}>👤</Text>
           <TextInput
             style={styles.textInput}
-            placeholder={`${currentScreen.charAt(0).toUpperCase() + currentScreen.slice(1)} ID`}
+            placeholder={`Email`}
             value={username}
             onChangeText={setUsername}
             autoCapitalize="none"
             autoCorrect={false}
+            keyboardType="email-address"
           />
         </View>
 
@@ -208,6 +258,15 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
+      {/* Backend connection status banner */}
+      {backendStatus && (
+        <View style={[styles.statusBanner, backendStatus === 'ok' ? styles.statusOk : styles.statusFail]}>
+          <Text style={styles.statusText}>
+            {backendStatus === 'ok' ? 'Connected to backend' : 'Cannot reach backend'}
+          </Text>
+        </View>
+      )}
+
       {/* Render appropriate screen */}
       {currentScreen === 'student-dashboard' ? (
         <Dashboard onLogout={handleLogout} user={currentUser} initialBalance={initialBalance} />
@@ -374,6 +433,26 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#87CEEB',
     fontSize: 16,
+    fontWeight: '500',
+  },
+  statusBanner: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingVertical: 8,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  statusOk: {
+    backgroundColor: '#e6f7ec',
+  },
+  statusFail: {
+    backgroundColor: '#fdecea',
+  },
+  statusText: {
+    color: '#333',
+    fontSize: 12,
     fontWeight: '500',
   },
 });

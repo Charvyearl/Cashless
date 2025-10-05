@@ -34,6 +34,11 @@ export const authAPI = {
     const res = await api.post('/auth/login', { rfid_card_id: rfidCardId });
     return res.data;
   },
+  loginWithEmail: async (email, password) => {
+    // Explicitly POST with json and no auth header
+    const res = await api.post('/auth/email-login', { email, password }, { headers: { Authorization: undefined } });
+    return res.data;
+  },
   verify: async () => {
     const res = await api.get('/auth/verify');
     return res.data;
@@ -49,6 +54,23 @@ export const walletAPI = {
     const res = await api.get('/wallets/transactions', { params });
     return res.data;
   },
+  // Server-Sent Events stream for live updates (development use)
+  streamTransactions: (onMessage, onError) => {
+    try {
+      // Include token via query param to avoid CORS preflight complexity
+      const token = (api.defaults.headers.common.Authorization || '').replace('Bearer ', '');
+      const url = `${api.defaults.baseURL}/wallets/transactions/stream?token=${encodeURIComponent(token)}`;
+      const es = new EventSource(url);
+      es.onmessage = (e) => {
+        try { onMessage && onMessage(JSON.parse(e.data)); } catch (_) {}
+      };
+      es.onerror = (e) => { onError && onError(e); es.close(); };
+      return () => es.close();
+    } catch (e) {
+      onError && onError(e);
+      return () => {};
+    }
+  },
 };
 
 export const menuAPI = {
@@ -60,8 +82,28 @@ export const menuAPI = {
     const res = await api.get('/menu/products', { params });
     return res.data;
   },
+  getCategories: async () => {
+    const res = await api.get('/menu/categories');
+    return res.data;
+  },
 };
 
 export const getBaseUrl = () => BASE_URL;
+
+export const ordersAPI = {
+  createOrder: async (items) => {
+    // items: [{ product_id, quantity }]
+    const res = await api.post('/canteen-orders/create', { items });
+    return res.data;
+  },
+  listOrders: async (params = {}) => {
+    const res = await api.get('/canteen-orders', { params });
+    return res.data;
+  },
+  getOrder: async (transactionId) => {
+    const res = await api.get(`/canteen-orders/${transactionId}`);
+    return res.data;
+  },
+};
 
 

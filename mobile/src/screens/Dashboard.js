@@ -4,11 +4,12 @@ import {
   Text,
   View,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Image,
   Alert,
+  ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import StudentHome from './StudentHome';
 import TransactionHistory from './TransactionHistory';
 import BottomNavigation from '../components/BottomNavigation';
@@ -72,40 +73,43 @@ export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
         </TouchableOpacity>
       </View>
 
-      {/* Header */}
-      <View style={styles.dashboardHeader}>
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeText}>Welcome</Text>
-          <Text style={styles.studentName}>{user ? `${user.first_name} ${user.last_name}` : 'Student'}</Text>
-        </View>
-      </View>
-
-      {/* Balance Card */}
-      <View style={styles.balanceCard}>
-        <View style={styles.balanceHeader}>
-          <Text style={styles.balanceIcon}>💳</Text>
-          <Text style={styles.balanceTitle}>Balance</Text>
-        </View>
-        <Text style={styles.balanceSubtitle}>Your current wallet balance</Text>
-        <View style={styles.balanceAmountContainer}>
-          <Text style={styles.balanceAmount}>₱{Number(balance).toFixed(2)}</Text>
-        </View>
-        <View style={styles.studentInfo}>
-          <View style={styles.studentInfoColumn}>
-            <Text style={styles.studentInfoLabel}>Student ID</Text>
-            <Text style={styles.studentInfoValue}>{user?.student_id || '—'}</Text>
-          </View>
-          <View style={styles.studentInfoColumn}>
-            <Text style={styles.studentInfoLabel}>Student Name</Text>
-            <Text style={styles.studentInfoValue}>{user ? `${user.first_name} ${user.last_name}` : '—'}</Text>
+      {/* Scrollable content (keeps header/top bar fixed) */}
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }} nestedScrollEnabled>
+        {/* Header */}
+        <View style={styles.dashboardHeader}>
+          <View style={styles.welcomeSection}>
+            <Text style={styles.welcomeText}>Welcome</Text>
+            <Text style={styles.studentName}>{user ? `${user.first_name} ${user.last_name}` : 'Student'}</Text>
           </View>
         </View>
-      </View>
 
-      {/* Content Area */}
-      <View style={styles.contentContainer}>
-        {activeTab === 'home' ? <StudentHome /> : <TransactionHistory />}
-      </View>
+        {/* Balance Card */}
+        <View style={styles.balanceCard}>
+          <View style={styles.balanceHeader}>
+            <Text style={styles.balanceIcon}>💳</Text>
+            <Text style={styles.balanceTitle}>Balance</Text>
+          </View>
+          <Text style={styles.balanceSubtitle}>Your current wallet balance</Text>
+          <View style={styles.balanceAmountContainer}>
+            <Text style={styles.balanceAmount}>₱{Number(balance).toFixed(2)}</Text>
+          </View>
+          <View style={styles.studentInfo}>
+            <View style={styles.studentInfoColumn}>
+              <Text style={styles.studentInfoLabel}>Student ID</Text>
+              <Text style={styles.studentInfoValue}>{user?.student_id || '—'}</Text>
+            </View>
+            <View style={styles.studentInfoColumn}>
+              <Text style={styles.studentInfoLabel}>Student Name</Text>
+              <Text style={styles.studentInfoValue}>{user ? `${user.first_name} ${user.last_name}` : '—'}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Content Area */}
+        <View style={styles.contentContainer}>
+          {activeTab === 'home' ? <StudentHome /> : <TransactionHistory />}
+        </View>
+      </ScrollView>
 
       {/* Bottom Navigation */}
       <BottomNavigation activeTab={activeTab} onTabPress={setActiveTab} />

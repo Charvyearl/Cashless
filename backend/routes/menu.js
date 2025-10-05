@@ -270,8 +270,17 @@ router.post('/products', verifyToken, requireStaff, validate(productSchemas.crea
 
 router.get('/products', optionalAuth, async (req, res) => {
   try {
-    const { category, available_only } = req.query;
-    const items = await Product.findAll({ category, available_only: available_only !== 'false' });
+    const { category, category_id, available_only } = req.query;
+    // Backward compatibility: support old ?category=name and new ?category_id=ID
+    const opts = { available_only: available_only !== 'false' };
+    if (category_id) {
+      opts.category_id = parseInt(category_id, 10);
+    } else if (category) {
+      // If only name provided, Product.findAll will still match by joined name via category filter below
+      // For now, pass as category_id is absent
+      opts.category = category;
+    }
+    const items = await Product.findAll(opts);
     res.json({ success: true, data: items });
   } catch (error) {
     console.error('List products error:', error);

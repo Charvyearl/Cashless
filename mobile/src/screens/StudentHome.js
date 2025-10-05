@@ -6,11 +6,13 @@ import {
   View,
   TextInput,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 
 export default function StudentHome() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null); // null = All
+  const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -19,6 +21,9 @@ export default function StudentHome() {
     const load = async () => {
       setLoading(true);
       try {
+        // Load categories
+        const cats = await menuAPI.getCategories().catch(()=>null);
+        if (isMounted && cats?.success) setCategories(cats.data || []);
         const res = await menuAPI.getProducts({ available_only: true, limit: 20 });
         if (isMounted && res?.success && Array.isArray(res.data) && res.data.length > 0) {
           setItems(res.data);
@@ -40,22 +45,47 @@ export default function StudentHome() {
     return () => { isMounted = false; };
   }, []);
 
+  // Reload products when category changes
+  useEffect(() => {
+    let isMounted = true;
+    const loadByCategory = async () => {
+      setLoading(true);
+      try {
+        const params = { available_only: true, limit: 20 };
+        if (selectedCategoryId) params.category_id = selectedCategoryId;
+        const res = await menuAPI.getProducts(params);
+        if (isMounted && res?.success) {
+          setItems(res.data || []);
+        }
+      } catch (_) {}
+      finally { if (isMounted) setLoading(false); }
+    };
+    if (categories.length > 0) loadByCategory();
+    return () => { isMounted = false; };
+  }, [selectedCategoryId, categories.length]);
+
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search Menu item"
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-        <TouchableOpacity style={styles.categoryButton}>
-          <Text style={styles.categoryButtonText}>{selectedCategory}</Text>
-          <Text style={styles.dropdownIcon}>▼</Text>
-        </TouchableOpacity>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          <TouchableOpacity
+            style={[styles.categoryChip, selectedCategoryId === null && styles.categoryChipActive]}
+            onPress={() => setSelectedCategoryId(null)}
+          >
+            <Text style={[styles.categoryChipText, selectedCategoryId === null && styles.categoryChipTextActive]}>All</Text>
+          </TouchableOpacity>
+          {categories.map((c) => (
+            <TouchableOpacity
+              key={c.id}
+              style={[styles.categoryChip, selectedCategoryId === c.id && styles.categoryChipActive]}
+              onPress={() => setSelectedCategoryId(c.id)}
+            >
+              <Text style={[styles.categoryChipText, selectedCategoryId === c.id && styles.categoryChipTextActive]}>
+                {c.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
       {loading ? (
@@ -63,27 +93,33 @@ export default function StudentHome() {
       ) : items.length === 0 ? (
         <Text>No items available</Text>
       ) : (
-        items.map((item) => (
-          <View key={item.id || item.product_id} style={styles.menuItemCard}>
-            <View style={styles.menuItemHeader}>
-              <Text style={styles.menuItemName}>{item.name || item.product_name}</Text>
-              <Text style={styles.menuItemPrice}>₱{Number(item.price).toFixed(2)}</Text>
-            </View>
-            {!!(item.category || item.category_name) && (
-              <View style={styles.menuItemCategory}>
-                <Text style={styles.categoryTag}>{item.category || item.category_name}</Text>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 120, gap: 12 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {items.map((item) => (
+            <View key={item.id || item.product_id} style={styles.menuItemCard}>
+              <View style={styles.menuItemHeader}>
+                <Text style={styles.menuItemName}>{item.name || item.product_name}</Text>
+                <Text style={styles.menuItemPrice}>₱{Number(item.price).toFixed(2)}</Text>
               </View>
-            )}
-            {item.description ? (
-              <Text style={styles.menuItemDescription}>{item.description}</Text>
-            ) : null}
-            <TouchableOpacity style={styles.availabilityButton}>
-              <Text style={styles.availabilityButtonText}>
-                {item.is_available ? 'Available at the Canteen' : 'Currently Unavailable'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ))
+              {!!(item.category || item.category_name) && (
+                <View style={styles.menuItemCategory}>
+                  <Text style={styles.categoryTag}>{item.category || item.category_name}</Text>
+                </View>
+              )}
+              {item.description ? (
+                <Text style={styles.menuItemDescription}>{item.description}</Text>
+              ) : null}
+              <TouchableOpacity style={styles.availabilityButton}>
+                <Text style={styles.availabilityButtonText}>
+                  {item.is_available ? 'Available at the Canteen' : 'Currently Unavailable'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
       )}
     </View>
   );
@@ -120,14 +156,26 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   categoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    display: 'none',
+  },
+  categoryChip: {
     backgroundColor: 'white',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
     borderWidth: 1,
     borderColor: '#e0e0e0',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  categoryChipActive: {
+    backgroundColor: '#87CEEB',
+    borderColor: '#87CEEB',
+  },
+  categoryChipText: {
+    color: '#333',
+    fontSize: 14,
+  },
+  categoryChipTextActive: {
+    color: 'white',
   },
   categoryButtonText: {
     fontSize: 16,

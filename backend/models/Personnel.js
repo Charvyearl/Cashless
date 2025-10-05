@@ -70,7 +70,7 @@ class Personnel {
   static async findByEmail(email) {
     try {
       const [rows] = await pool.execute(
-        'SELECT * FROM personnel WHERE email = ?',
+        'SELECT * FROM personnel WHERE LOWER(email) = LOWER(?)',
         [email]
       );
       return rows.length > 0 ? new Personnel(rows[0]) : null;

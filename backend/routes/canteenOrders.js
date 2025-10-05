@@ -63,11 +63,13 @@ router.post('/create', verifyToken, async (req, res) => {
       });
     }
 
-    // Create the transaction
+    // Create the transaction and attribute to the logged-in personnel (if staff)
     const transaction = await CanteenTransaction.create({
       total_amount: totalAmount,
       status: 'pending',
-      payment_method: 'rfid'
+      payment_method: 'rfid',
+      user_id: req.user && req.user.user_type === 'student' ? req.user.id : null,
+      personnel_id: req.user && (req.user.user_type === 'staff' || req.user.user_type === 'admin') ? req.user.id : null,
     });
 
     // Create transaction items

@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 const { pool } = require('../config/database');
+const Student = require('../models/Student');
+const Personnel = require('../models/Personnel');
 
 // Verify JWT token
 const verifyToken = async (req, res, next) => {
@@ -20,18 +22,6 @@ const verifyToken = async (req, res, next) => {
     if (token.startsWith('mock-jwt-token-')) {
       const mockedId = parseInt(token.replace('mock-jwt-token-', ''), 10);
       if (!Number.isNaN(mockedId)) {
-        try {
-          const [users] = await pool.execute(
-            'SELECT id, rfid_card_id, first_name, last_name, user_type, is_active FROM users WHERE id = ?',
-            [mockedId]
-          );
-          if (users.length > 0 && users[0].is_active) {
-            req.user = users[0];
-            return next();
-          }
-        } catch (_) {}
-
-        // Fallback mock user (development only)
         const mockRole = mockedId === 1 ? 'admin' : 'staff';
         req.user = {
           id: mockedId,
@@ -47,20 +37,38 @@ const verifyToken = async (req, res, next) => {
 
     const decoded = jwt.verify(token, config.jwt.secret);
     
-    // Verify user still exists and is active
-    const [users] = await pool.execute(
-      'SELECT id, rfid_card_id, first_name, last_name, user_type, is_active FROM users WHERE id = ?',
-      [decoded.userId]
-    );
-    
-    if (users.length === 0 || !users[0].is_active) {
-      return res.status(401).json({
-        success: false,
-        message: 'User not found or inactive'
-      });
+    // Resolve user based on token userType
+    let resolved = null;
+    if (decoded.userType === 'student') {
+      const student = await Student.findById(decoded.userId);
+      if (student && student.is_active) {
+        resolved = {
+          id: student.user_id,
+          rfid_card_id: student.rfid_card_id,
+          first_name: student.first_name,
+          last_name: student.last_name,
+          user_type: 'student',
+          is_active: true,
+        };
+      }
+    } else {
+      const personnel = await Personnel.findById(decoded.userId);
+      if (personnel && personnel.is_active) {
+        resolved = {
+          id: personnel.personnel_id,
+          rfid_card_id: personnel.rfid_card_id,
+          first_name: personnel.first_name,
+          last_name: personnel.last_name,
+          user_type: decoded.userType === 'admin' ? 'admin' : 'staff',
+          is_active: true,
+        };
+      }
     }
-    
-    req.user = users[0];
+
+    if (!resolved) {
+      return res.status(401).json({ success: false, message: 'User not found or inactive' });
+    }
+    req.user = resolved;
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
@@ -118,30 +126,53 @@ const requireStudent = (req, res, next) => {
   next();
 };
 
-// Optional auth - doesn't fail if no token
+// Optional auth - doesn't fail if no token (supports students and personnel)
 const optionalAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       req.user = null;
       return next();
     }
-    
+
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, config.jwt.secret);
-    
-    const [users] = await pool.execute(
-      'SELECT id, rfid_card_id, first_name, last_name, user_type, is_active FROM users WHERE id = ?',
-      [decoded.userId]
-    );
-    
-    if (users.length > 0 && users[0].is_active) {
-      req.user = users[0];
+
+    // Resolve user based on token userType
+    let userRecord = null;
+    if (decoded.userType === 'student') {
+      const Student = require('../models/Student');
+      userRecord = await Student.findById(decoded.userId);
+      if (userRecord && userRecord.is_active) {
+        req.user = {
+          id: userRecord.user_id,
+          rfid_card_id: userRecord.rfid_card_id,
+          first_name: userRecord.first_name,
+          last_name: userRecord.last_name,
+          user_type: 'student',
+          is_active: true,
+        };
+      }
     } else {
+      const Personnel = require('../models/Personnel');
+      const personnel = await Personnel.findById(decoded.userId);
+      if (personnel && personnel.is_active) {
+        req.user = {
+          id: personnel.personnel_id,
+          rfid_card_id: personnel.rfid_card_id,
+          first_name: personnel.first_name,
+          last_name: personnel.last_name,
+          user_type: decoded.userType === 'admin' ? 'admin' : 'staff',
+          is_active: true,
+        };
+      }
+    }
+
+    if (!req.user) {
       req.user = null;
     }
-    
+
     next();
   } catch (error) {
     req.user = null;

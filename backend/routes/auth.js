@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const Student = require('../models/Student');
+const Personnel = require('../models/Personnel');
 const { generateToken } = require('../utils/jwt');
 const { validate } = require('../utils/validation');
 const { userSchemas } = require('../utils/validation');
+const bcrypt = require('bcryptjs');
 
 // Register new user (admin only)
 router.post('/register', validate(userSchemas.register), async (req, res) => {
@@ -82,69 +85,164 @@ router.post('/register', validate(userSchemas.register), async (req, res) => {
   }
 });
 
-// Login with RFID card
+// Login with RFID card (supports students and personnel tables)
 router.post('/login', async (req, res) => {
   try {
-    const { rfid_card_id } = req.body;
-    
+    const { rfid_card_id, email, password } = req.body || {};
+
+    // If email/password are provided, handle email login inline (compat mode)
+    if (email && password) {
+      // Try student first
+      let account = await Student.findByEmail(email);
+      let userType = 'student';
+      let idField = 'user_id';
+
+      if (!account) {
+        account = await Personnel.findByEmail(email);
+        userType = 'staff';
+        idField = 'personnel_id';
+      }
+
+      if (!account) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+      }
+
+      if (account.is_active === false) {
+        return res.status(401).json({ success: false, message: 'Account is inactive' });
+      }
+
+      const ok = await bcrypt.compare(password, account.password);
+      if (!ok) {
+        return res.status(401).json({ success: false, message: 'Invalid email or password' });
+      }
+
+      const userId = account[idField];
+      const token = generateToken(userId, userType);
+
+      return res.json({
+        success: true,
+        message: 'Login successful',
+        data: {
+          user: {
+            id: userId,
+            rfid_card_id: account.rfid_card_id,
+            first_name: account.first_name,
+            last_name: account.last_name,
+            email: account.email,
+            user_type: userType,
+          },
+          wallet: { balance: Number(account.balance || 0) },
+          token,
+        },
+      });
+    }
+
     if (!rfid_card_id) {
-      return res.status(400).json({
-        success: false,
-        message: 'RFID card ID is required'
-      });
+      return res.status(400).json({ success: false, message: 'RFID card ID is required' });
     }
-    
-    // Find user by RFID card
-    const user = await User.findByRfidCardId(rfid_card_id);
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid RFID card'
-      });
+
+    let account = await Student.findByRfidCardId(rfid_card_id);
+    let userType = 'student';
+    let id = account?.user_id;
+
+    if (!account) {
+      const personnel = await Personnel.findByRfidCardId(rfid_card_id);
+      if (!personnel) {
+        return res.status(401).json({ success: false, message: 'Invalid RFID card' });
+      }
+      if (personnel.is_active === false) {
+        return res.status(401).json({ success: false, message: 'Account is inactive' });
+      }
+      account = personnel;
+      userType = 'staff';
+      id = personnel.personnel_id;
+    } else if (account.is_active === false) {
+      return res.status(401).json({ success: false, message: 'Account is inactive' });
     }
-    
-    if (!user.is_active) {
-      return res.status(401).json({
-        success: false,
-        message: 'Account is inactive'
-      });
-    }
-    
-    // Generate JWT token
-    const token = generateToken(user.id, user.user_type);
-    
-    // Get user's wallet balance
-    const wallet = await user.getWallet();
-    
-    res.json({
+
+    const token = generateToken(id, userType);
+
+    return res.json({
       success: true,
       message: 'Login successful',
       data: {
         user: {
-          id: user.id,
-          rfid_card_id: user.rfid_card_id,
-          student_id: user.student_id,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          email: user.email,
-          phone: user.phone,
-          user_type: user.user_type
+          id,
+          rfid_card_id: account.rfid_card_id,
+          first_name: account.first_name,
+          last_name: account.last_name,
+          email: account.email,
+          user_type: userType,
         },
-        wallet: {
-          balance: wallet ? wallet.balance : 0
-        },
-        token
-      }
+        wallet: { balance: Number(account.balance || 0) },
+        token,
+      },
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Login failed',
-      error: error.message
-    });
+    res.status(500).json({ success: false, message: 'Login failed', error: error.message });
   }
 });
+
+// Email/password login for students and personnel
+router.post('/email-login', async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Email and password are required' });
+    }
+
+    // Try student first
+    let account = await Student.findByEmail(email);
+    let userType = 'student';
+    let idField = 'user_id';
+
+    if (!account) {
+      // Try personnel
+      account = await Personnel.findByEmail(email);
+      userType = 'staff';
+      idField = 'personnel_id';
+    }
+
+    if (!account) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    if (account.is_active === false) {
+      return res.status(401).json({ success: false, message: 'Account is inactive' });
+    }
+
+    const ok = await bcrypt.compare(password, account.password);
+    if (!ok) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    const userId = account[idField];
+    const token = generateToken(userId, userType);
+
+    return res.json({
+      success: true,
+      message: 'Login successful',
+      data: {
+        user: {
+          id: userId,
+          rfid_card_id: account.rfid_card_id,
+          first_name: account.first_name,
+          last_name: account.last_name,
+          email: account.email,
+          user_type: userType,
+        },
+        wallet: { balance: Number(account.balance || 0) },
+        token,
+      },
+    });
+  } catch (error) {
+    console.error('Email login error:', error);
+    return res.status(500).json({ success: false, message: 'Login failed', error: error.message });
+  }
+});
+
 
 // Verify token
 router.get('/verify', async (req, res) => {
