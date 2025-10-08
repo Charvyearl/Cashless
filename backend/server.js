@@ -19,8 +19,8 @@ const app = express();
 // CORS configuration (place BEFORE security middlewares to ensure preflight headers are set)
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://yourdomain.com'] // Replace with your actual domain
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080'],
+    ? ['https://yourdomain.com']
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080', 'http://localhost:8081', 'http://localhost:19006'],
   credentials: true,
 };
 app.use(cors(corsOptions));

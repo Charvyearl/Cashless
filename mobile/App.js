@@ -11,7 +11,7 @@ import {
   Alert,
   TextInput
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
 import Dashboard from './src/screens/Dashboard';
 import PersonnelDashboard from './src/screens/PersonnelDashboard';
 import { authAPI, setAuthToken, getBaseUrl } from './src/api/client';
@@ -255,6 +255,7 @@ export default function App() {
   );
 
   return (
+    <SafeAreaProvider>
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
@@ -286,6 +287,7 @@ export default function App() {
         </ImageBackground>
       )}
     </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
