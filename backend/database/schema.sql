@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS TRANSACTIONS (
     personnel_id INT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
     transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('pending', 'completed', 'cancelled') DEFAULT 'pending',
+    status ENUM('pending', 'ready', 'completed', 'cancelled') DEFAULT 'pending',
     payment_method ENUM('rfid', 'cash') DEFAULT 'rfid',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

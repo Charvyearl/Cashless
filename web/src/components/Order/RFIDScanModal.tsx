@@ -25,6 +25,7 @@ interface RFIDScanModalProps {
   onClose: () => void;
   orderData: OrderData | null;
   onPaymentComplete: (result: any) => void;
+  existingTransactionId?: number;
 }
 
 const currency = (amount: number) =>
@@ -34,7 +35,8 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
   isOpen, 
   onClose, 
   orderData, 
-  onPaymentComplete 
+  onPaymentComplete,
+  existingTransactionId
 }) => {
   const [rfidInput, setRfidInput] = useState('');
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -105,7 +107,7 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
       setCustomer(null);
       setError('');
       setStep('scan');
-      setTransactionId(null);
+      setTransactionId(existingTransactionId ?? null);
       setIsScanning(false);
       
       // Automatically start scanning when modal opens
@@ -126,7 +128,7 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
         rfidScanner.stopScanning();
       }
     };
-  }, [isOpen]);
+  }, [isOpen, existingTransactionId]);
 
   const verifyRFID = async (rfid: string) => {
     if (!rfid.trim()) {
@@ -237,15 +239,16 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
     setStep('processing');
 
     try {
-      // First create the order
-      const newTransactionId = await createOrder();
-      console.log('Order created with transaction ID:', newTransactionId);
+      let txId = existingTransactionId;
+      if (!txId) {
+        // Create a new order if no existing transaction is provided
+        const newTransactionId = await createOrder();
+        txId = newTransactionId;
+        setTransactionId(newTransactionId);
+      }
       
-      // Set the transaction ID and wait for state update
-      setTransactionId(newTransactionId);
-      
-      // Now complete the payment with the transaction ID
-      const response = await canteenOrdersAPI.completeOrder(newTransactionId, {
+      // Complete the payment with the transaction ID
+      const response = await canteenOrdersAPI.completeOrder(Number(txId), {
         customer_rfid: customer.rfid_card_id
       });
 

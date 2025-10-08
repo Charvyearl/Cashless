@@ -11,6 +11,13 @@ class CanteenTransaction {
     this.payment_method = data.payment_method;
     this.created_at = data.created_at;
     this.updated_at = data.updated_at;
+    // Optional joined fields for display
+    this.user_first_name = data.user_first_name;
+    this.user_last_name = data.user_last_name;
+    this.user_rfid = data.user_rfid;
+    this.personnel_first_name = data.personnel_first_name;
+    this.personnel_last_name = data.personnel_last_name;
+    this.personnel_rfid = data.personnel_rfid;
   }
 
   static async create(transactionData) {
@@ -55,7 +62,7 @@ class CanteenTransaction {
                u.first_name as user_first_name, u.last_name as user_last_name, u.rfid_card_id as user_rfid,
                p.first_name as personnel_first_name, p.last_name as personnel_last_name, p.rfid_card_id as personnel_rfid
         FROM TRANSACTIONS t 
-        LEFT JOIN users u ON t.user_id = u.id
+        LEFT JOIN students u ON t.user_id = u.user_id
         LEFT JOIN personnel p ON t.personnel_id = p.personnel_id
         WHERE 1=1
       `;

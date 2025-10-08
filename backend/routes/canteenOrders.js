@@ -115,10 +115,10 @@ router.post('/:transactionId/complete', verifyToken, async (req, res) => {
       });
     }
 
-    if (transaction.status !== 'pending') {
+    if (!['pending', 'ready'].includes(transaction.status)) {
       return res.status(400).json({
         success: false,
-        message: 'Transaction is not in pending status'
+        message: 'Transaction is not pending or ready'
       });
     }
 
@@ -402,6 +402,32 @@ router.post('/verify-rfid', verifyToken, async (req, res) => {
       message: 'Failed to verify RFID',
       error: error.message
     });
+  }
+});
+
+// Update order status
+router.patch('/:transactionId/status', verifyToken, async (req, res) => {
+  try {
+    const { transactionId } = req.params;
+    const { status } = req.body;
+
+    const allowed = ['pending', 'ready', 'completed', 'cancelled'];
+    if (!allowed.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const transaction = await CanteenTransaction.findById(transactionId);
+    if (!transaction) {
+      return res.status(404).json({ success: false, message: 'Transaction not found' });
+    }
+
+    await transaction.updateStatus(status);
+    const details = await transaction.getDetails();
+
+    res.json({ success: true, message: 'Status updated', data: details });
+  } catch (error) {
+    console.error('Update order status error:', error);
+    res.status(500).json({ success: false, message: 'Failed to update status', error: error.message });
   }
 });
 

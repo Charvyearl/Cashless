@@ -8,6 +8,7 @@ import CanteenDashboard from './pages/CanteenDashboard';
 import CreateOrder from './pages/CreateOrder';
 import AddProduct from './pages/AddProduct';
 import EditProduct from './pages/EditProduct';
+import CanteenOrderDetails from './pages/CanteenOrderDetails';
 import Login from './pages/Login';
 
 import Users from './pages/Users';
@@ -37,6 +38,7 @@ const AppRoutes: React.FC = () => {
         <Route index element={user?.user_type === 'staff' ? <CanteenDashboard /> : <Dashboard />} />
         <Route path="canteen" element={<CanteenDashboard />} />
         <Route path="canteen/order" element={<CreateOrder />} />
+        <Route path="canteen/orders/:id" element={<CanteenOrderDetails />} />
         <Route path="canteen/add" element={<AddProduct />} />
         <Route path="canteen/edit/:id" element={<EditProduct />} />
         <Route path="users" element={<Users />} />

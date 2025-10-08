@@ -252,6 +252,8 @@ export const canteenOrdersAPI = {
   
   verifyRFID: (rfidCardId: string) =>
     api.post('/canteen-orders/verify-rfid', { rfid_card_id: rfidCardId }),
+  updateStatus: (transactionId: number, status: 'pending' | 'ready' | 'completed' | 'cancelled') =>
+    api.patch(`/canteen-orders/${transactionId}/status`, { status }),
 };
 
 export default api;
