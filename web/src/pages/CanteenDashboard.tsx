@@ -36,25 +36,28 @@ const StatCard: React.FC<{ title: string; value: string | number; sub?: string; 
   );
 };
 
-const Badge: React.FC<{ tone: 'gray' | 'green' | 'red' | 'yellow'; label: string }>
+const Badge: React.FC<{ tone: 'gray' | 'green' | 'red' | 'yellow' | 'blue'; label: string }>
   = ({ tone, label }) => {
   const styles: Record<string, string> = {
     gray: 'bg-gray-100 text-gray-700',
     green: 'bg-green-100 text-green-700',
     red: 'bg-red-100 text-red-700',
-    yellow: 'bg-yellow-100 text-yellow-700'
+    yellow: 'bg-yellow-100 text-yellow-700',
+    blue: 'bg-blue-100 text-blue-700'
   };
   return <span className={`px-2 py-1 text-xs rounded ${styles[tone]}`}>{label}</span>;
 };
 
 const CanteenDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'analytics'>('menu');
+  const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'transaction'>('menu');
   const [categoryFilter, setCategoryFilter] = useState<string>('All Categories');
 
   const [menuItems, setMenuItems] = useState<MenuItemRow[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState<boolean>(false);
+  const [transactions, setTransactions] = useState<any[]>([]);
+  const [loadingTransactions, setLoadingTransactions] = useState<boolean>(false);
 
   const filteredItems = useMemo(() => {
     if (categoryFilter === 'All Categories') return menuItems;
@@ -80,7 +83,7 @@ const CanteenDashboard: React.FC = () => {
           category: p.category,
           price: p.price,
           stock: p.stock_quantity,
-          status: p.is_available ? 'available' : 'disabled',
+          status: p.stock_quantity === 0 ? 'disabled' : (p.is_available ? 'available' : 'disabled'),
           prepTimeMin: 0
         })) as MenuItemRow[];
         setMenuItems(rows);
@@ -111,6 +114,21 @@ const CanteenDashboard: React.FC = () => {
     loadOrders();
   }, []);
 
+  useEffect(() => {
+    const loadTransactions = async () => {
+      try {
+        setLoadingTransactions(true);
+        const res = await canteenOrdersAPI.getOrders({ limit: 100 });
+        setTransactions(res.data?.data?.transactions || []);
+      } catch (e) {
+        console.error('Failed to load transactions', e);
+      } finally {
+        setLoadingTransactions(false);
+      }
+    };
+    loadTransactions();
+  }, []);
+
 
   return (
     <div className="space-y-6">
@@ -121,10 +139,6 @@ const CanteenDashboard: React.FC = () => {
           <p className="mt-1 text-sm text-gray-600">Manage orders, menu items, and inventory</p>
         </div>
         <div className="flex items-center gap-3">
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
-            <ArrowPathIcon className="w-5 h-5" />
-            Refresh
-          </button>
           <button 
             onClick={() => navigate('/canteen/order')}
             className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800"
@@ -136,18 +150,18 @@ const CanteenDashboard: React.FC = () => {
       </div>
 
       {/* Top metric cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
         <StatCard title="Pending Orders" value={orders.filter(o => o.status === 'pending').length} sub="Awaiting preparation" />
-        <StatCard title="Completed Today" value={156} sub="+12% from yesterday" color="text-green-700" />
-        <StatCard title="Today's Revenue" value={currency(3650.75)} sub="+8.5% from yesterday" color="text-blue-700" />
-        <StatCard title="Average Order" value={currency(23.4)} sub="+3.2% from yesterday" color="text-purple-700" />
+        <StatCard title="Total Items" value={totals.totalItems} />
+        <StatCard title="Available Items" value={totals.available} />
+        <StatCard title="Out of Stock" value={totals.outOfStock} />
       </div>
 
       {/* Tabs */}
       <div className="rounded-full border border-gray-300 flex overflow-hidden w-full">
         <button onClick={() => setActiveTab('orders')} className={`flex-1 px-4 py-2 text-sm ${activeTab === 'orders' ? 'bg-gray-100' : ''}`}>Order Management</button>
         <button onClick={() => setActiveTab('menu')} className={`flex-1 px-4 py-2 text-sm ${activeTab === 'menu' ? 'bg-gray-100' : ''}`}>Menu & Inventory</button>
-        <button onClick={() => setActiveTab('analytics')} className={`flex-1 px-4 py-2 text-sm ${activeTab === 'analytics' ? 'bg-gray-100' : ''}`}>Analytics</button>
+        <button onClick={() => setActiveTab('transaction')} className={`flex-1 px-4 py-2 text-sm ${activeTab === 'transaction' ? 'bg-gray-100' : ''}`}>Transaction</button>
       </div>
 
       {/* Orders / Inventory / Analytics sections */}
@@ -255,14 +269,6 @@ const CanteenDashboard: React.FC = () => {
 
       {activeTab === 'menu' && (
         <>
-          {/* Inventory summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard title="Total Items" value={totals.totalItems} />
-            <StatCard title="Available Items" value={totals.available} />
-            <StatCard title="Out of Stock" value={totals.outOfStock} />
-            <StatCard title="Inventory Value" value={currency(totals.inventoryValue)} />
-          </div>
-
           {/* Menu Items table */}
           <div className="bg-white border border-gray-200 rounded-lg">
             <div className="p-4 flex items-center justify-between">
@@ -312,9 +318,9 @@ const CanteenDashboard: React.FC = () => {
                         <span className="inline-flex items-center px-2 py-1 text-xs rounded bg-gray-100 text-gray-700">{row.stock}</span>
                       </td>
                       <td className="px-4 py-3">
-                        {row.status === 'available' && <Badge tone="green" label="Available" />}
-                        {row.status === 'out_of_stock' && <Badge tone="red" label="Out of Stock" />}
-                        {row.status === 'disabled' && <Badge tone="yellow" label="Disabled" />}
+                        {row.stock === 0 && <Badge tone="red" label="Out of Stock" />}
+                        {row.stock > 0 && row.status === 'available' && <Badge tone="green" label="Available" />}
+                        {row.stock > 0 && row.status === 'disabled' && <Badge tone="yellow" label="Disabled" />}
                       </td>
                       <td className="px-4 py-3">{row.prepTimeMin} min</td>
                       <td className="px-4 py-3 text-right">
@@ -375,6 +381,77 @@ const CanteenDashboard: React.FC = () => {
             </div>
           </div>
         </>
+      )}
+
+      {activeTab === 'transaction' && (
+        <div className="bg-white border border-gray-200 rounded-lg">
+          <div className="p-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">Transaction History</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50 text-left">
+                <tr>
+                  <th className="px-4 py-3 font-medium text-gray-600">Transaction ID</th>
+                  <th className="px-4 py-3 font-medium text-gray-600">Customer</th>
+                  <th className="px-4 py-3 font-medium text-gray-600">Amount</th>
+                  <th className="px-4 py-3 font-medium text-gray-600">Status</th>
+                  <th className="px-4 py-3 font-medium text-gray-600">Date</th>
+                  <th className="px-4 py-3 font-medium text-gray-600 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {loadingTransactions && (
+                  <tr>
+                    <td className="px-4 py-6 text-center text-gray-500" colSpan={6}>Loading transactions…</td>
+                  </tr>
+                )}
+                {!loadingTransactions && transactions.length === 0 && (
+                  <tr>
+                    <td className="px-4 py-6 text-center text-gray-500" colSpan={6}>No transactions found</td>
+                  </tr>
+                )}
+                {!loadingTransactions && transactions.map((t: any) => (
+                  <tr key={t.transaction_id}>
+                    <td className="px-4 py-3">
+                      <div className="text-gray-900 font-medium">#{t.transaction_id}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-gray-900">
+                        {(t.personnel_last_name) ? `${t.personnel_last_name}` :
+                         (t.user_last_name) ? `${t.user_last_name}` : '—'}
+                      </div>
+                      <div className="text-gray-500 text-xs">{t.personnel_rfid || t.user_rfid || ''}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-gray-900 font-medium">{currency(t.total_amount)}</div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {t.status === 'pending' && <Badge tone="yellow" label="Pending" />}
+                      {t.status === 'ready' && <Badge tone="green" label="Ready" />}
+                      {t.status === 'completed' && <Badge tone="blue" label="Completed" />}
+                      {t.status === 'cancelled' && <Badge tone="red" label="Cancelled" />}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-gray-900">{new Date(t.transaction_date).toLocaleDateString()}</div>
+                      <div className="text-gray-500 text-xs">{new Date(t.transaction_date).toLocaleTimeString()}</div>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center gap-2 justify-end">
+                        <button
+                          onClick={() => navigate(`/canteen/transactions/${t.transaction_id}`)}
+                          className="px-2 py-1 text-xs rounded border border-gray-300 hover:bg-gray-50"
+                        >
+                          View
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
     </div>

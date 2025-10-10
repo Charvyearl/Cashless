@@ -26,15 +26,25 @@ export default function PersonnelHome({ onAddItem }) {
         if (isMounted && cats?.success) setCategories(cats.data || []);
         const res = await menuAPI.getProducts({ available_only: true, limit: 20 });
         if (isMounted && res?.success && Array.isArray(res.data) && res.data.length > 0) {
-          setItems(res.data);
+          // Filter out products with 0 stock
+          const filteredItems = res.data.filter(item => (item.stock_quantity || 0) > 0);
+          setItems(filteredItems);
         } else {
           const res2 = await menuAPI.getItems({ available_only: true, limit: 20 });
-          if (isMounted && res2?.success) setItems(res2.data.items || []);
+          if (isMounted && res2?.success) {
+            // Filter out items with 0 stock
+            const filteredItems = (res2.data.items || []).filter(item => (item.stock_quantity || 0) > 0);
+            setItems(filteredItems);
+          }
         }
       } catch (e) {
         try {
           const res2 = await menuAPI.getItems({ available_only: true, limit: 20 });
-          if (isMounted && res2?.success) setItems(res2.data.items || []);
+          if (isMounted && res2?.success) {
+            // Filter out items with 0 stock
+            const filteredItems = (res2.data.items || []).filter(item => (item.stock_quantity || 0) > 0);
+            setItems(filteredItems);
+          }
         } catch (_) {}
       } finally {
         if (isMounted) setLoading(false);
@@ -52,7 +62,11 @@ export default function PersonnelHome({ onAddItem }) {
         const params = { available_only: true, limit: 20 };
         if (selectedCategoryId) params.category_id = selectedCategoryId;
         const res = await menuAPI.getProducts(params);
-        if (isMounted && res?.success) setItems(res.data || []);
+        if (isMounted && res?.success) {
+          // Filter out products with 0 stock
+          const filteredItems = (res.data || []).filter(item => (item.stock_quantity || 0) > 0);
+          setItems(filteredItems);
+        }
       } catch (_) {}
       finally { if (isMounted) setLoading(false); }
     };

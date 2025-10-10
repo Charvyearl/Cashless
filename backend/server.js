@@ -36,7 +36,11 @@ const limiter = rateLimit({
   max: config.security.rateLimitMax,
   message: 'Too many requests from this IP, please try again later.'
 });
-app.use(limiter);
+
+// Only enable rate limiter in production
+if (config.nodeEnv === 'production') {
+  app.use(limiter);
+}
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));

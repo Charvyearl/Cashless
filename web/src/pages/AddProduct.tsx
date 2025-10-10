@@ -243,7 +243,7 @@ const AddProduct: React.FC = () => {
           </div>
           <div className="flex justify-end gap-3">
             <button type="button" onClick={()=>navigate(-1)} className="px-4 py-2 rounded-md border border-gray-300">Cancel</button>
-            <button type="submit" disabled={submitting} className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+            <button type="submit" disabled={submitting} className="px-4 py-2 rounded-md bg-blue-600 text-black hover:bg-blue-700 disabled:opacity-50">
               {submitting ? 'Saving...' : 'Save Product'}
             </button>
           </div>

@@ -117,15 +117,17 @@ const productSchemas = {
     product_name: Joi.string().required().min(2).max(200),
     description: Joi.string().allow('', null).max(1000),
     price: Joi.number().positive().precision(2).max(10000).required(),
-    category: Joi.string().required().min(2).max(100),
+    category: Joi.string().min(2).max(100),
+    category_id: Joi.number().integer().positive(),
     stock_quantity: Joi.number().integer().min(0).default(0),
     is_available: Joi.boolean().default(true)
-  }),
+  }).or('category', 'category_id'), // Require either category or category_id
   update: Joi.object({
     product_name: Joi.string().min(2).max(200),
     description: Joi.string().allow('', null).max(1000),
     price: Joi.number().positive().precision(2).max(10000),
     category: Joi.string().min(2).max(100),
+    category_id: Joi.number().integer().positive(),
     stock_quantity: Joi.number().integer().min(0),
     is_available: Joi.boolean()
   })

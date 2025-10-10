@@ -15,14 +15,24 @@ class Product {
   }
 
   static async create(data) {
+    // Handle both category_id and category string
+    let categoryName = data.category;
+    if (data.category_id && !data.category) {
+      // If category_id is provided but not category name, get the name from categories table
+      const [categoryRows] = await pool.execute('SELECT name FROM categories WHERE id = ?', [data.category_id]);
+      if (categoryRows.length > 0) {
+        categoryName = categoryRows[0].name;
+      }
+    }
+    
     const [result] = await pool.execute(
       `INSERT INTO PRODUCT (product_name, description, price, category, stock_quantity, is_available)
-       VALUES (?, ?, ?, (SELECT name FROM categories WHERE id = ?), ?, ?)`,
+       VALUES (?, ?, ?, ?, ?, ?)`,
       [
         data.product_name,
         data.description || null,
         data.price,
-        data.category_id || null,
+        categoryName,
         data.stock_quantity ?? 0,
         data.is_available !== undefined ? data.is_available : true
       ]
