@@ -182,7 +182,7 @@ export const transactionsAPI = {
 // Dashboard API
 export const dashboardAPI = {
   getStats: (): Promise<AxiosResponse<ApiResponse<DashboardStats>>> =>
-    api.get('/dashboard/stats'),
+    api.get('/admin/dashboard/stats'),
 };
 
 // RFID API

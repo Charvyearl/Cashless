@@ -10,6 +10,11 @@ import AddProduct from './pages/AddProduct';
 import EditProduct from './pages/EditProduct';
 import CanteenOrderDetails from './pages/CanteenOrderDetails';
 import CanteenTransactionDetails from './pages/CanteenTransactionDetails';
+import AdminTransactionDetails from './pages/AdminTransactionDetails';
+import RevenueSummary from './pages/RevenueSummary';
+import TransactionAnalysis from './pages/TransactionAnalysis';
+import UserActivitySummary from './pages/UserActivitySummary';
+import DailySummary from './pages/DailySummary';
 import Login from './pages/Login';
 
 import Users from './pages/Users';
@@ -41,6 +46,11 @@ const AppRoutes: React.FC = () => {
         <Route path="canteen/order" element={<CreateOrder />} />
         <Route path="canteen/orders/:id" element={<CanteenOrderDetails />} />
         <Route path="canteen/transactions/:id" element={<CanteenTransactionDetails />} />
+            <Route path="admin/transactions/:id" element={<AdminTransactionDetails />} />
+            <Route path="admin/reports/revenue-summary" element={<RevenueSummary />} />
+            <Route path="admin/reports/transaction-analysis" element={<TransactionAnalysis />} />
+            <Route path="admin/reports/user-activity" element={<UserActivitySummary />} />
+            <Route path="admin/reports/daily-summary" element={<DailySummary />} />
         <Route path="canteen/add" element={<AddProduct />} />
         <Route path="canteen/edit/:id" element={<EditProduct />} />
         <Route path="users" element={<Users />} />

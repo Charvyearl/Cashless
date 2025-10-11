@@ -528,4 +528,65 @@ router.delete('/personnel/:id', async (req, res) => {
   }
 });
 
+// Dashboard statistics endpoint
+router.get('/dashboard/stats', async (req, res) => {
+  try {
+    const { pool } = require('../config/database');
+    
+    // Get total users (students + personnel)
+    const [studentCount] = await pool.execute('SELECT COUNT(*) as count FROM students WHERE is_active = 1');
+    const [personnelCount] = await pool.execute('SELECT COUNT(*) as count FROM personnel WHERE is_active = 1');
+    const totalUsers = studentCount[0].count + personnelCount[0].count;
+    
+    // Get total transactions
+    const [transactionCount] = await pool.execute('SELECT COUNT(*) as count FROM TRANSACTIONS');
+    
+    // Get total revenue (sum of completed transactions)
+    const [revenueResult] = await pool.execute('SELECT SUM(total_amount) as total FROM TRANSACTIONS WHERE status = "completed"');
+    const totalRevenue = revenueResult[0].total || 0;
+    
+    // Get active wallets (users with balance > 0)
+    const [activeWalletsResult] = await pool.execute(`
+      SELECT COUNT(*) as count FROM (
+        SELECT user_id FROM students WHERE balance > 0 AND is_active = 1
+        UNION
+        SELECT personnel_id FROM personnel WHERE balance > 0 AND is_active = 1
+      ) as active_users
+    `);
+    
+    // Get today's transactions
+    const [todayTransactions] = await pool.execute(`
+      SELECT COUNT(*) as count FROM TRANSACTIONS 
+      WHERE DATE(transaction_date) = CURDATE()
+    `);
+    
+    // Get today's revenue
+    const [todayRevenueResult] = await pool.execute(`
+      SELECT SUM(total_amount) as total FROM TRANSACTIONS 
+      WHERE DATE(transaction_date) = CURDATE() AND status = 'completed'
+    `);
+    
+    const stats = {
+      total_users: totalUsers,
+      total_transactions: transactionCount[0].count,
+      total_revenue: parseFloat(totalRevenue),
+      active_wallets: activeWalletsResult[0].count,
+      daily_transactions: todayTransactions[0].count,
+      daily_revenue: parseFloat(todayRevenueResult[0].total || 0)
+    };
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Dashboard stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get dashboard statistics',
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

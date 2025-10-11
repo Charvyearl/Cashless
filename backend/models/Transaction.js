@@ -49,7 +49,7 @@ class Transaction {
   static async findById(id) {
     try {
       const [rows] = await pool.execute(
-        'SELECT * FROM transactions WHERE id = ?',
+        'SELECT * FROM TRANSACTIONS WHERE transaction_id = ?',
         [id]
       );
       return rows.length > 0 ? new Transaction(rows[0]) : null;
@@ -62,7 +62,7 @@ class Transaction {
   static async findByTransactionId(transactionId) {
     try {
       const [rows] = await pool.execute(
-        'SELECT * FROM transactions WHERE transaction_id = ?',
+        'SELECT * FROM TRANSACTIONS WHERE transaction_id = ?',
         [transactionId]
       );
       return rows.length > 0 ? new Transaction(rows[0]) : null;
@@ -78,27 +78,37 @@ class Transaction {
       const offset = (page - 1) * limit;
       
       let query = `
-        SELECT t.*, tt.name as transaction_type_name, u.first_name, u.last_name, u.rfid_card_id
-        FROM transactions t 
-        JOIN transaction_types tt ON t.transaction_type_id = tt.id 
-        JOIN users u ON t.user_id = u.id
-        WHERE t.user_id = ?
+        SELECT 
+          t.transaction_id as id,
+          t.transaction_id,
+          t.user_id,
+          t.personnel_id,
+          t.total_amount as amount,
+          t.transaction_date as created_at,
+          t.transaction_date as updated_at,
+          t.status,
+          t.payment_method as description,
+          'purchase' as transaction_type_name,
+          COALESCE(s.first_name, p.first_name) as first_name,
+          COALESCE(s.last_name, p.last_name) as last_name,
+          COALESCE(s.rfid_card_id, p.rfid_card_id) as rfid_card_id,
+          t.total_amount as balance_before,
+          t.total_amount as balance_after
+        FROM TRANSACTIONS t 
+        LEFT JOIN students s ON t.user_id = s.user_id
+        LEFT JOIN personnel p ON t.personnel_id = p.personnel_id
+        WHERE (t.user_id = ? OR t.personnel_id = ?)
       `;
-      const params = [userId];
+      const params = [userId, userId];
       
       if (startDate) {
-        query += ' AND t.created_at >= ?';
+        query += ' AND t.transaction_date >= ?';
         params.push(startDate);
       }
       
       if (endDate) {
-        query += ' AND t.created_at <= ?';
+        query += ' AND t.transaction_date <= ?';
         params.push(endDate);
-      }
-      
-      if (transactionType) {
-        query += ' AND tt.name = ?';
-        params.push(transactionType);
       }
       
       if (status) {
@@ -106,7 +116,7 @@ class Transaction {
         params.push(status);
       }
       
-      query += ' ORDER BY t.created_at DESC LIMIT ? OFFSET ?';
+      query += ' ORDER BY t.transaction_date DESC LIMIT ? OFFSET ?';
       params.push(limit, offset);
       
       const [rows] = await pool.execute(query, params);
@@ -123,32 +133,42 @@ class Transaction {
       const offset = (page - 1) * limit;
       
       let query = `
-        SELECT t.*, tt.name as transaction_type_name, u.first_name, u.last_name, u.rfid_card_id
-        FROM transactions t 
-        JOIN transaction_types tt ON t.transaction_type_id = tt.id 
-        JOIN users u ON t.user_id = u.id
+        SELECT 
+          t.transaction_id as id,
+          t.transaction_id,
+          t.user_id,
+          t.personnel_id,
+          t.total_amount as amount,
+          t.transaction_date as created_at,
+          t.transaction_date as updated_at,
+          t.status,
+          t.payment_method as description,
+          'purchase' as transaction_type_name,
+          COALESCE(s.first_name, p.first_name) as first_name,
+          COALESCE(s.last_name, p.last_name) as last_name,
+          COALESCE(s.rfid_card_id, p.rfid_card_id) as rfid_card_id,
+          t.total_amount as balance_before,
+          t.total_amount as balance_after
+        FROM TRANSACTIONS t 
+        LEFT JOIN students s ON t.user_id = s.user_id
+        LEFT JOIN personnel p ON t.personnel_id = p.personnel_id
         WHERE 1=1
       `;
       const params = [];
       
       if (userId) {
-        query += ' AND t.user_id = ?';
-        params.push(userId);
+        query += ' AND (t.user_id = ? OR t.personnel_id = ?)';
+        params.push(userId, userId);
       }
       
       if (startDate) {
-        query += ' AND t.created_at >= ?';
+        query += ' AND t.transaction_date >= ?';
         params.push(startDate);
       }
       
       if (endDate) {
-        query += ' AND t.created_at <= ?';
+        query += ' AND t.transaction_date <= ?';
         params.push(endDate);
-      }
-      
-      if (transactionType) {
-        query += ' AND tt.name = ?';
-        params.push(transactionType);
       }
       
       if (status) {
@@ -156,7 +176,7 @@ class Transaction {
         params.push(status);
       }
       
-      query += ' ORDER BY t.created_at DESC LIMIT ? OFFSET ?';
+      query += ' ORDER BY t.transaction_date DESC LIMIT ? OFFSET ?';
       params.push(limit, offset);
       
       const [rows] = await pool.execute(query, params);
