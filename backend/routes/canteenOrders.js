@@ -246,6 +246,13 @@ router.get('/', verifyToken, async (req, res) => {
       personnelId: req.query.personnel_id
     };
 
+    // Automatically filter by the authenticated user
+    if (req.user.user_type === 'student') {
+      options.userId = req.user.id;
+    } else if (req.user.user_type === 'staff' || req.user.user_type === 'admin') {
+      options.personnelId = req.user.id;
+    }
+
     const transactions = await CanteenTransaction.findAll(options);
 
     res.json({

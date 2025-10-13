@@ -120,15 +120,15 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    setCurrentScreen('landing');
-    setSelectedRole(null);
-    setUsername('');
-    setPassword('');
-    setShowPassword(false);
     setAuthToken();
     setAuthTokenState(null);
     setCurrentUser(null);
     setInitialBalance(0);
+    setSelectedRole(null);
+    setUsername('');
+    setPassword('');
+    setShowPassword(false);
+    setCurrentScreen('landing');
   };
 
   // Render Landing Screen

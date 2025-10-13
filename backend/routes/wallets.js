@@ -20,7 +20,7 @@ router.get('/balance', verifyToken, async (req, res) => {
       const [rows] = await pool.execute('SELECT balance FROM personnel WHERE personnel_id = ? AND is_active = TRUE', [req.user.id]);
       balance = rows.length ? Number(rows[0].balance) : 0;
     }
-
+    
     res.json({
       success: true,
       data: {
@@ -70,15 +70,19 @@ router.get('/transactions', verifyToken, async (req, res) => {
     // Derive transactions from TRANSACTIONS table
     const forceScope = (req.query.scope || '').toString().toLowerCase();
     const idField = forceScope === 'personnel' ? 'personnel_id' : (req.user.user_type === 'student' ? 'user_id' : 'personnel_id');
-    const [rows] = await pool.execute(
-      `SELECT transaction_id, total_amount as amount, status, payment_method, transaction_date as created_at
-       FROM TRANSACTIONS
-       WHERE ${idField} = ?
-       ORDER BY transaction_date DESC
-       LIMIT ? OFFSET ?`,
-      [req.user.id, limit, offset]
-    );
-
+    const status = (req.query.status || '').toString().toLowerCase();
+    let sql = `SELECT transaction_id, total_amount as amount, status, payment_method, transaction_date as created_at
+               FROM TRANSACTIONS
+               WHERE ${idField} = ?`;
+    const params = [req.user.id];
+    if (status) {
+      sql += ' AND status = ?';
+      params.push(status);
+    }
+    sql += ' ORDER BY transaction_date DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+    const [rows] = await pool.execute(sql, params);
+    
     res.json({
       success: true,
       data: {

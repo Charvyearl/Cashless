@@ -29,10 +29,15 @@ export default function TransactionHistory({ scope } = {}) {
   const reload = async () => {
     setLoading(true);
     try {
-      const params = { limit: 20 };
+      const params = { limit: 20, status: 'completed' };
       if (scope) params.scope = scope;
       const res = await walletAPI.getTransactions(params);
-      if (res?.success) setTransactions(res.data.transactions || []);
+      if (res?.success) {
+        const list = (res.data.transactions || []).filter(
+          (t) => String(t.status || '').toLowerCase() === 'completed'
+        );
+        setTransactions(list);
+      }
     } catch (_) {}
     finally { setLoading(false); }
   };

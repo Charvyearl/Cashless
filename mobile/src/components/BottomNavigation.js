@@ -6,7 +6,7 @@ import {
   Text,
 } from 'react-native';
 
-export default function BottomNavigation({ activeTab, onTabPress }) {
+export default function BottomNavigation({ activeTab, onTabPress, showOrderTab = true }) {
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -17,6 +17,16 @@ export default function BottomNavigation({ activeTab, onTabPress }) {
         <Text style={[styles.tabLabel, activeTab === 'home' && styles.activeTabLabel]}>Home</Text>
       </TouchableOpacity>
       
+      {showOrderTab && (
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'order' && styles.activeTab]}
+          onPress={() => onTabPress('order')}
+        >
+          <Text style={[styles.tabIcon, activeTab === 'order' && styles.activeTabIcon]}>🧾</Text>
+          <Text style={[styles.tabLabel, activeTab === 'order' && styles.activeTabLabel]}>Order</Text>
+        </TouchableOpacity>
+      )}
+
       <TouchableOpacity
         style={[styles.tab, activeTab === 'transaction' && styles.activeTab]}
         onPress={() => onTabPress('transaction')}

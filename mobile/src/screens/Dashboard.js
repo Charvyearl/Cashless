@@ -9,6 +9,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
+import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import StudentHome from './StudentHome';
 import TransactionHistory from './TransactionHistory';
@@ -36,23 +37,16 @@ export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
   }, []);
 
   const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      onLogout && onLogout();
+      return;
+    }
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: () => {
-            if (onLogout) {
-              onLogout();
-            }
-          },
-        },
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: () => onLogout && onLogout() },
       ]
     );
   };
@@ -95,10 +89,6 @@ export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
           </View>
           <View style={styles.studentInfo}>
             <View style={styles.studentInfoColumn}>
-              <Text style={styles.studentInfoLabel}>Student ID</Text>
-              <Text style={styles.studentInfoValue}>{user?.student_id || '—'}</Text>
-            </View>
-            <View style={styles.studentInfoColumn}>
               <Text style={styles.studentInfoLabel}>Student Name</Text>
               <Text style={styles.studentInfoValue}>{user ? `${user.first_name} ${user.last_name}` : '—'}</Text>
             </View>
@@ -107,12 +97,16 @@ export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
 
         {/* Content Area */}
         <View style={styles.contentContainer}>
-          {activeTab === 'home' ? <StudentHome /> : <TransactionHistory />}
+          {activeTab === 'home' ? (
+            <StudentHome />
+          ) : (
+            <TransactionHistory />
+          )}
         </View>
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabPress={setActiveTab} />
+      <BottomNavigation activeTab={activeTab} onTabPress={setActiveTab} showOrderTab={false} />
     </SafeAreaView>
   );
 }
