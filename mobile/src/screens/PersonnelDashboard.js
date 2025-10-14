@@ -10,14 +10,16 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
+import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import PersonnelHome from './PersonnelHome';
+import OrderStatus from './OrderStatus';
 import TransactionHistory from './TransactionHistory';
 import BottomNavigation from '../components/BottomNavigation';
 import { walletAPI, ordersAPI } from '../api/client';
 
 export default function PersonnelDashboard({ onLogout, user, initialBalance = 0 }) {
-  const [activeTab, setActiveTab] = useState('home'); // 'home', 'transaction'
+  const [activeTab, setActiveTab] = useState('home'); // 'home', 'order', 'transaction'
   const [balance, setBalance] = useState(initialBalance);
   const [cart, setCart] = useState([]); // [{ product_id, name, price, quantity }]
   const [showCart, setShowCart] = useState(false);
@@ -39,23 +41,16 @@ export default function PersonnelDashboard({ onLogout, user, initialBalance = 0 
   }, []);
 
   const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      onLogout && onLogout();
+      return;
+    }
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: () => {
-            if (onLogout) {
-              onLogout();
-            }
-          },
-        },
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Logout', style: 'destructive', onPress: () => onLogout && onLogout() },
       ]
     );
   };
@@ -107,11 +102,7 @@ export default function PersonnelDashboard({ onLogout, user, initialBalance = 0 
           </View>
           <View style={styles.studentInfo}>
             <View style={styles.studentInfoColumn}>
-              <Text style={styles.studentInfoLabel}>Student ID</Text>
-              <Text style={styles.studentInfoValue}>{user?.student_id || '—'}</Text>
-            </View>
-            <View style={styles.studentInfoColumn}>
-              <Text style={styles.studentInfoLabel}>Student Name</Text>
+              <Text style={styles.studentInfoLabel}>Personnel Name</Text>
               <Text style={styles.studentInfoValue}>{user ? `${user.first_name} ${user.last_name}` : '—'}</Text>
             </View>
           </View>
@@ -139,6 +130,8 @@ export default function PersonnelDashboard({ onLogout, user, initialBalance = 0 
               // brief toast-like feedback
               Alert.alert('Added', `${item.product_name || item.name} added to cart`);
             }} />
+          ) : activeTab === 'order' ? (
+            <OrderStatus scope="personnel" />
           ) : (
             <TransactionHistory scope="personnel" />
           )}
@@ -239,7 +232,7 @@ export default function PersonnelDashboard({ onLogout, user, initialBalance = 0 
       </Modal>
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab={activeTab} onTabPress={setActiveTab} />
+      <BottomNavigation activeTab={activeTab} onTabPress={setActiveTab} showOrderTab={true} />
     </SafeAreaView>
   );
 }
