@@ -150,4 +150,6 @@ export interface DashboardStats {
   active_wallets: number;
   daily_transactions: number;
   daily_revenue: number;
+  active_users: number;
+  new_users_today: number;
 }

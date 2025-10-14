@@ -1,10 +1,9 @@
-// UNO R4 WiFi + RC522 -> Act as USB Keyboard for RFID scanning
-// Libraries: WiFiS3, SPI, MFRC522, Keyboard
+// UNO R4 WiFi + RC522 -> POST RFID scans to backend API
+// Libraries: WiFiS3, SPI, MFRC522
 
 #include <WiFiS3.h>
 #include <SPI.h>
 #include <MFRC522.h>
-#include <Keyboard.h>
 
 // ====== EDIT THESE ======
 const char* WIFI_SSID = "CORTEZ";
@@ -42,22 +41,7 @@ void connectWiFi() {
   }
 }
 
-// Send RFID as keyboard input (primary method)
-void sendAsKeyboard(const String& uid) {
-  Serial.println("📱 Sending RFID as keyboard input: " + uid);
-  
-  // Type the UID
-  Keyboard.print(uid);
-  
-  // Send Enter key to trigger form submission
-  Keyboard.press(KEY_RETURN);
-  delay(100);
-  Keyboard.release(KEY_RETURN);
-  
-  Serial.println("✅ RFID sent via keyboard");
-}
-
-// Backup: Post to backend API
+// Post RFID scan to backend API
 bool postScan(const String& uid) {
   connectWiFi();
   if (WiFi.status() != WL_CONNECTED) return false;
@@ -85,7 +69,7 @@ bool postScan(const String& uid) {
     while (client.available()) client.read();
   }
   client.stop();
-  Serial.println("📡 Posted to API backup");
+  Serial.println("📡 Posted to API");
   return true;
 }
 
@@ -109,15 +93,12 @@ void setup() {
   Serial.begin(115200);
   while (!Serial) { delay(10); }
   
-  // Initialize Keyboard
-  Keyboard.begin();
-  
   // Initialize SPI and RFID
   SPI.begin();
   mfrc522.PCD_Init();
   
   Serial.println("🚀 RFID Scanner Ready!");
-  Serial.println("📱 Mode: USB Keyboard + API Backup");
+  Serial.println("📡 Mode: API Only");
   Serial.println("💳 Tap a card to scan...");
   
   connectWiFi();
@@ -138,10 +119,7 @@ void loop() {
     Serial.println("=================================");
     Serial.print("🔍 Card Detected: "); Serial.println(uid);
     
-    // Primary method: Send as keyboard input
-    sendAsKeyboard(uid);
-    
-    // Backup method: Post to API
+    // Post to API
     postScan(uid);
     
     // Update last scan info

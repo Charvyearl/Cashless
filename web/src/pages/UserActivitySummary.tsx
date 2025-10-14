@@ -23,8 +23,8 @@ const UserActivitySummary: React.FC = () => {
         if (response.data.success) {
           setActivityData({
             total_users: response.data.data.total_users,
-            active_users: Math.floor(response.data.data.total_users * 0.75),
-            new_users_today: Math.floor(response.data.data.total_users * 0.02),
+            active_users: response.data.data.active_users,
+            new_users_today: response.data.data.new_users_today,
           });
         } else {
           setError('Failed to fetch user activity data');

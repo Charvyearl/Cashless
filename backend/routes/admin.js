@@ -566,13 +566,35 @@ router.get('/dashboard/stats', async (req, res) => {
       WHERE DATE(transaction_date) = CURDATE() AND status = 'completed'
     `);
     
+    // Get active users (users who made transactions in the last 30 days)
+    const [activeUsersResult] = await pool.execute(`
+      SELECT COUNT(DISTINCT user_id) as count FROM (
+        SELECT user_id FROM TRANSACTIONS 
+        WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND status = 'completed'
+        UNION
+        SELECT personnel_id as user_id FROM TRANSACTIONS 
+        WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND status = 'completed'
+      ) as active_users
+    `);
+    
+    // Get new users today (users created today)
+    const [newUsersTodayResult] = await pool.execute(`
+      SELECT COUNT(*) as count FROM (
+        SELECT user_id FROM students WHERE DATE(created_at) = CURDATE() AND is_active = 1
+        UNION
+        SELECT personnel_id FROM personnel WHERE DATE(created_at) = CURDATE() AND is_active = 1
+      ) as new_users
+    `);
+    
     const stats = {
       total_users: totalUsers,
       total_transactions: transactionCount[0].count,
       total_revenue: parseFloat(totalRevenue),
       active_wallets: activeWalletsResult[0].count,
       daily_transactions: todayTransactions[0].count,
-      daily_revenue: parseFloat(todayRevenueResult[0].total || 0)
+      daily_revenue: parseFloat(todayRevenueResult[0].total || 0),
+      active_users: activeUsersResult[0].count,
+      new_users_today: newUsersTodayResult[0].count
     };
     
     res.json({
@@ -584,6 +606,203 @@ router.get('/dashboard/stats', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get dashboard statistics',
+      error: error.message
+    });
+  }
+});
+
+// User Reports and Registration Trends endpoints
+router.get('/reports/user-registration-trends', async (req, res) => {
+  try {
+    const { pool } = require('../config/database');
+    const { days = 30 } = req.query;
+    
+    // Get registration trends for the last N days
+    const [registrationTrends] = await pool.execute(`
+      SELECT 
+        DATE(created_at) as date,
+        COUNT(*) as new_users,
+        SUM(CASE WHEN user_type = 'student' THEN 1 ELSE 0 END) as students,
+        SUM(CASE WHEN user_type = 'personnel' THEN 1 ELSE 0 END) as personnel
+      FROM (
+        SELECT created_at, 'student' as user_type FROM students WHERE is_active = 1
+        UNION ALL
+        SELECT created_at, 'personnel' as user_type FROM personnel WHERE is_active = 1
+      ) as all_users
+      WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL ? DAY)
+      GROUP BY DATE(created_at)
+      ORDER BY date DESC
+    `, [parseInt(days)]);
+    
+    res.json({
+      success: true,
+      data: {
+        trends: registrationTrends,
+        period_days: parseInt(days)
+      }
+    });
+  } catch (error) {
+    console.error('User registration trends error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get registration trends',
+      error: error.message
+    });
+  }
+});
+
+router.get('/reports/user-activity-summary', async (req, res) => {
+  try {
+    const { pool } = require('../config/database');
+    
+    // Get user activity summary
+    const [activitySummary] = await pool.execute(`
+      SELECT 
+        'Total Users' as metric,
+        COUNT(*) as value
+      FROM (
+        SELECT user_id FROM students WHERE is_active = 1
+        UNION
+        SELECT personnel_id FROM personnel WHERE is_active = 1
+      ) as all_users
+      
+      UNION ALL
+      
+      SELECT 
+        'Active Users (30 days)' as metric,
+        COUNT(DISTINCT user_id) as value
+      FROM (
+        SELECT user_id FROM TRANSACTIONS 
+        WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND status = 'completed'
+        UNION
+        SELECT personnel_id as user_id FROM TRANSACTIONS 
+        WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) AND status = 'completed'
+      ) as active_users
+      
+      UNION ALL
+      
+      SELECT 
+        'New Users Today' as metric,
+        COUNT(*) as value
+      FROM (
+        SELECT user_id FROM students WHERE DATE(created_at) = CURDATE() AND is_active = 1
+        UNION
+        SELECT personnel_id FROM personnel WHERE DATE(created_at) = CURDATE() AND is_active = 1
+      ) as new_users
+      
+      UNION ALL
+      
+      SELECT 
+        'Users with Balance > 0' as metric,
+        COUNT(*) as value
+      FROM (
+        SELECT user_id FROM students WHERE balance > 0 AND is_active = 1
+        UNION
+        SELECT personnel_id FROM personnel WHERE balance > 0 AND is_active = 1
+      ) as users_with_balance
+    `);
+    
+    res.json({
+      success: true,
+      data: activitySummary
+    });
+  } catch (error) {
+    console.error('User activity summary error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get user activity summary',
+      error: error.message
+    });
+  }
+});
+
+// Weekly Performance and Peak Hours endpoints
+router.get('/reports/weekly-performance', async (req, res) => {
+  try {
+    const { pool } = require('../config/database');
+    const { weeks = 4 } = req.query;
+    
+    // Get weekly performance data for the last N weeks
+    const [weeklyData] = await pool.execute(`
+      SELECT 
+        YEARWEEK(transaction_date) as week,
+        DATE(transaction_date) as week_start,
+        COUNT(*) as total_transactions,
+        SUM(total_amount) as total_revenue,
+        AVG(total_amount) as avg_transaction_value,
+        COUNT(DISTINCT user_id) as unique_users
+      FROM TRANSACTIONS 
+      WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL ? WEEK) 
+        AND status = 'completed'
+      GROUP BY YEARWEEK(transaction_date)
+      ORDER BY week DESC
+    `, [parseInt(weeks)]);
+    
+    res.json({
+      success: true,
+      data: {
+        weekly_performance: weeklyData,
+        period_weeks: parseInt(weeks)
+      }
+    });
+  } catch (error) {
+    console.error('Weekly performance error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get weekly performance data',
+      error: error.message
+    });
+  }
+});
+
+router.get('/reports/peak-hours', async (req, res) => {
+  try {
+    const { pool } = require('../config/database');
+    const { days = 30 } = req.query;
+    
+    // Get peak hours analysis for the last N days
+    const [peakHoursData] = await pool.execute(`
+      SELECT 
+        HOUR(transaction_date) as hour,
+        COUNT(*) as transaction_count,
+        SUM(total_amount) as total_revenue,
+        AVG(total_amount) as avg_transaction_value,
+        COUNT(DISTINCT user_id) as unique_users
+      FROM TRANSACTIONS 
+      WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY) 
+        AND status = 'completed'
+      GROUP BY HOUR(transaction_date)
+      ORDER BY transaction_count DESC
+    `, [parseInt(days)]);
+    
+    // Get daily patterns
+    const [dailyPatterns] = await pool.execute(`
+      SELECT 
+        DAYNAME(transaction_date) as day_name,
+        DAYOFWEEK(transaction_date) as day_number,
+        COUNT(*) as transaction_count,
+        SUM(total_amount) as total_revenue,
+        AVG(total_amount) as avg_transaction_value
+      FROM TRANSACTIONS 
+      WHERE transaction_date >= DATE_SUB(CURDATE(), INTERVAL ? DAY) 
+        AND status = 'completed'
+      GROUP BY DAYOFWEEK(transaction_date), DAYNAME(transaction_date)
+      ORDER BY day_number
+    `, [parseInt(days)]);
+    
+    res.json({
+      success: true,
+      data: {
+        peak_hours: peakHoursData,
+        daily_patterns: dailyPatterns,
+        period_days: parseInt(days)
+      }
+    });
+  } catch (error) {
+    console.error('Peak hours error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get peak hours data',
       error: error.message
     });
   }

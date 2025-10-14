@@ -192,6 +192,21 @@ export const rfidAPI = {
   getLatest: () => api.get('/rfid/latest'),
 };
 
+// Reports API
+export const reportsAPI = {
+  getUserRegistrationTrends: (days: number = 30) =>
+    api.get(`/admin/reports/user-registration-trends?days=${days}`),
+  
+  getUserActivitySummary: () =>
+    api.get('/admin/reports/user-activity-summary'),
+  
+  getWeeklyPerformance: (weeks: number = 4) =>
+    api.get(`/admin/reports/weekly-performance?weeks=${weeks}`),
+  
+  getPeakHours: (days: number = 30) =>
+    api.get(`/admin/reports/peak-hours?days=${days}`),
+};
+
 // Admin API
 export const adminAPI = {
   // Student Management

@@ -14,6 +14,8 @@ import AdminTransactionDetails from './pages/AdminTransactionDetails';
 import RevenueSummary from './pages/RevenueSummary';
 import TransactionAnalysis from './pages/TransactionAnalysis';
 import UserActivitySummary from './pages/UserActivitySummary';
+import UserReports from './pages/UserReports';
+import WeeklyPerformance from './pages/WeeklyPerformance';
 import DailySummary from './pages/DailySummary';
 import Login from './pages/Login';
 
@@ -50,6 +52,8 @@ const AppRoutes: React.FC = () => {
             <Route path="admin/reports/revenue-summary" element={<RevenueSummary />} />
             <Route path="admin/reports/transaction-analysis" element={<TransactionAnalysis />} />
             <Route path="admin/reports/user-activity" element={<UserActivitySummary />} />
+            <Route path="admin/reports/user-reports" element={<UserReports />} />
+            <Route path="admin/reports/weekly-performance" element={<WeeklyPerformance />} />
             <Route path="admin/reports/daily-summary" element={<DailySummary />} />
         <Route path="canteen/add" element={<AddProduct />} />
         <Route path="canteen/edit/:id" element={<EditProduct />} />

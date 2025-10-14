@@ -420,13 +420,12 @@ const Dashboard: React.FC = () => {
                  <h4 className="font-medium text-gray-900">Activity Summary</h4>
                  <p className="text-sm text-gray-500 mt-1">User activity and engagement</p>
                </button>
-               <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+               <button 
+                 onClick={() => navigate('/admin/reports/user-reports')}
+                 className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+               >
                  <h4 className="font-medium text-gray-900">Registration Trends</h4>
                  <p className="text-sm text-gray-500 mt-1">New user signups over time</p>
-               </button>
-               <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                 <h4 className="font-medium text-gray-900">Balance Distribution</h4>
-                 <p className="text-sm text-gray-500 mt-1">User wallet balance ranges</p>
                </button>
              </div>
           </div>
@@ -445,38 +444,16 @@ const Dashboard: React.FC = () => {
                  <h4 className="font-medium text-gray-900">Daily Summary</h4>
                  <p className="text-sm text-gray-500 mt-1">Today's performance overview</p>
                </button>
-               <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
+               <button 
+                 onClick={() => navigate('/admin/reports/weekly-performance')}
+                 className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+               >
                  <h4 className="font-medium text-gray-900">Weekly Performance</h4>
-                 <p className="text-sm text-gray-500 mt-1">Week-over-week analysis</p>
-               </button>
-               <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                 <h4 className="font-medium text-gray-900">Peak Hours</h4>
-                 <p className="text-sm text-gray-500 mt-1">Busiest transaction times</p>
+                 <p className="text-sm text-gray-500 mt-1">Weekly trends and peak hours</p>
                </button>
              </div>
           </div>
 
-          {/* Export Options */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="text-md font-semibold text-gray-900 mb-4 flex items-center">
-              <PlusIcon className="h-5 w-5 mr-2 text-orange-600" />
-              Export Options
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <h4 className="font-medium text-gray-900">PDF Download</h4>
-                <p className="text-sm text-gray-500 mt-1">Generate PDF reports</p>
-              </button>
-              <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <h4 className="font-medium text-gray-900">CSV Export</h4>
-                <p className="text-sm text-gray-500 mt-1">Export data to CSV</p>
-              </button>
-              <button className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left">
-                <h4 className="font-medium text-gray-900">Print Report</h4>
-                <p className="text-sm text-gray-500 mt-1">Print-friendly reports</p>
-              </button>
-            </div>
-          </div>
         </div>
       )}
 

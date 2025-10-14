@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, CreditCardIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { canteenOrdersAPI } from '../../services/api';
-import { rfidScanner } from '../../utils/rfidScanner';
 
 interface Customer {
   id: number;
@@ -115,19 +114,8 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
         handleScanRfid();
       }, 500);
     } else {
-      // Clean up RFID scanner when modal closes
-      if (rfidScanner.isCurrentlyScanning()) {
-        rfidScanner.stopScanning();
-      }
       setIsScanning(false);
     }
-    
-    // Cleanup function
-    return () => {
-      if (rfidScanner.isCurrentlyScanning()) {
-        rfidScanner.stopScanning();
-      }
-    };
   }, [isOpen, existingTransactionId]);
 
   const verifyRFID = async (rfid: string) => {
