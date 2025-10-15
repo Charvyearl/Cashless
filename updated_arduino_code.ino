@@ -10,7 +10,7 @@ const char* WIFI_SSID = "CORTEZ";
 const char* WIFI_PASS = "Qwase0905123_";
 
 // Backend server (your PC's LAN IP and port)
-const char* API_HOST = "192.168.1.2"; // Update to your PC's IP
+const char* API_HOST = "192.168.1.3"; // Update to your PC's IP
 const int   API_PORT = 3000;
 // ========================
 

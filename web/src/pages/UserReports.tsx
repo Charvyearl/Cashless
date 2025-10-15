@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChartBarIcon, ArrowLeftIcon, CalendarIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { ChartBarIcon, ArrowLeftIcon, CalendarIcon, UsersIcon, PrinterIcon } from '@heroicons/react/24/outline';
 import { reportsAPI } from '../services/api';
 
 interface RegistrationTrend {
@@ -62,6 +62,198 @@ const UserReports: React.FC = () => {
 
   const getAverageDailyRegistrations = () => {
     return trends.length > 0 ? Math.round(getTotalNewUsers() / trends.length) : 0;
+  };
+
+  const printReport = () => {
+    if (!trends || trends.length === 0) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const totalNewUsers = getTotalNewUsers();
+    const averageDailyRegistrations = getAverageDailyRegistrations();
+    const todayVsAverage = trends.length > 0 ? Math.round((trends[0]?.new_users || 0) / Math.max(averageDailyRegistrations, 1) * 100) : 0;
+
+    const printContent = `<!DOCTYPE html>
+<html>
+  <head>
+    <title>User Registration Trends Report</title>
+    <style>
+      body { 
+        font-family: Arial, sans-serif; 
+        margin: 20px; 
+        color: #333;
+        line-height: 1.6;
+      }
+      .header { 
+        text-align: center; 
+        margin-bottom: 30px; 
+        border-bottom: 2px solid #2563eb;
+        padding-bottom: 20px;
+      }
+      .header h1 { 
+        color: #2563eb; 
+        margin: 0 0 10px 0; 
+        font-size: 28px;
+      }
+      .header p { 
+        color: #666; 
+        margin: 0; 
+        font-size: 14px;
+      }
+      .summary { 
+        margin: 30px 0; 
+        background: #f8fafc;
+        padding: 30px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+      }
+      .summary h2 { 
+        color: #1e293b; 
+        margin: 0 0 20px 0; 
+        font-size: 22px;
+        text-align: center;
+      }
+      .summary-grid { 
+        display: grid; 
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 30px; 
+        margin-top: 20px; 
+      }
+      .summary-item { 
+        text-align: center; 
+        padding: 25px; 
+        border: 2px solid #e5e7eb; 
+        border-radius: 12px; 
+        background: white;
+      }
+      .summary-value { 
+        font-size: 32px; 
+        font-weight: bold; 
+        margin: 10px 0;
+      }
+      .summary-label { 
+        color: #666; 
+        font-size: 14px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .total-users { color: #2563eb; }
+      .avg-daily { color: #059669; }
+      .today-vs-avg { color: #7c3aed; }
+      .table-container {
+        margin: 30px 0;
+        overflow-x: auto;
+      }
+      table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin-top: 20px;
+        font-size: 14px;
+      }
+      th { 
+        background-color: #f9fafb; 
+        border: 1px solid #e5e7eb; 
+        padding: 12px; 
+        text-align: left; 
+        font-weight: 600;
+        color: #374151;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 12px;
+      }
+      td { 
+        border: 1px solid #e5e7eb; 
+        padding: 12px; 
+        color: #111827;
+      }
+      tr:nth-child(even) { 
+        background-color: #f9fafb; 
+      }
+      tr:nth-child(odd) { 
+        background-color: white; 
+      }
+      .period-info {
+        background: #e0f2fe;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+        text-align: center;
+        color: #0277bd;
+        font-weight: 500;
+      }
+      @media print { 
+        body { margin: 0; }
+        .no-print { display: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>User Registration Trends Report</h1>
+      <p>Generated on: ${new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}</p>
+    </div>
+    
+    <div class="period-info">
+      Report Period: Last ${selectedDays} days
+    </div>
+    
+    <div class="summary">
+      <h2>Registration Trends Summary</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-value total-users">${totalNewUsers}</div>
+          <div class="summary-label">Total New Users</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value avg-daily">${averageDailyRegistrations}</div>
+          <div class="summary-label">Average Daily Registrations</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value today-vs-avg">${todayVsAverage}%</div>
+          <div class="summary-label">Today vs Average</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="table-container">
+      <h2 style="color: #1e293b; margin-bottom: 20px; font-size: 20px;">Daily Registration Trends</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Total New Users</th>
+            <th>Students</th>
+            <th>Personnel</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${trends.map(trend => `
+            <tr>
+              <td>${formatDate(trend.date)}</td>
+              <td>${trend.new_users}</td>
+              <td>${trend.students}</td>
+              <td>${trend.personnel}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>`;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   };
 
   if (loading) {
@@ -229,25 +421,14 @@ const UserReports: React.FC = () => {
         )}
       </div>
 
-      {/* Export Options */}
-      <div className="flex justify-end space-x-3">
+      {/* Print Option */}
+      <div className="flex justify-end">
         <button
-          onClick={() => alert('PDF export functionality coming soon!')}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+          onClick={printReport}
+          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700 transition-colors"
         >
-          Export PDF
-        </button>
-        <button
-          onClick={() => alert('CSV export functionality coming soon!')}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-        >
-          Export CSV
-        </button>
-        <button
-          onClick={() => window.print()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Print Report
+          <PrinterIcon className="h-4 w-4" />
+          <span>Print Report</span>
         </button>
       </div>
     </div>

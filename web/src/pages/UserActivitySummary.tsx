@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UsersIcon, ArrowLeftIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { UsersIcon, ArrowLeftIcon, CalendarIcon, PrinterIcon } from '@heroicons/react/24/outline';
 import { dashboardAPI } from '../services/api';
 
 interface UserActivityData {
@@ -38,6 +38,175 @@ const UserActivitySummary: React.FC = () => {
 
     fetchActivityData();
   }, []);
+
+  const printReport = () => {
+    if (!activityData) return;
+    
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const userActivityRate = activityData.total_users > 0 
+      ? ((activityData.active_users / activityData.total_users) * 100).toFixed(1)
+      : '0';
+    
+    const averageDailyActiveUsers = activityData.total_users > 0
+      ? Math.round(activityData.total_users / 30)
+      : 0;
+
+    const printContent = `<!DOCTYPE html>
+<html>
+  <head>
+    <title>User Activity Summary Report</title>
+    <style>
+      body { 
+        font-family: Arial, sans-serif; 
+        margin: 20px; 
+        color: #333;
+        line-height: 1.6;
+      }
+      .header { 
+        text-align: center; 
+        margin-bottom: 30px; 
+        border-bottom: 2px solid #2563eb;
+        padding-bottom: 20px;
+      }
+      .header h1 { 
+        color: #2563eb; 
+        margin: 0 0 10px 0; 
+        font-size: 28px;
+      }
+      .header p { 
+        color: #666; 
+        margin: 0; 
+        font-size: 14px;
+      }
+      .metrics { 
+        display: grid; 
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 20px; 
+        margin: 30px 0; 
+      }
+      .metric { 
+        text-align: center; 
+        padding: 25px; 
+        border: 2px solid #e5e7eb; 
+        border-radius: 12px; 
+        background: #f9fafb;
+      }
+      .metric-value { 
+        font-size: 28px; 
+        font-weight: bold; 
+        margin: 10px 0;
+      }
+      .metric-label { 
+        color: #666; 
+        font-size: 14px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .summary { 
+        margin: 40px 0; 
+        background: #f8fafc;
+        padding: 30px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+      }
+      .summary h2 { 
+        color: #1e293b; 
+        margin: 0 0 20px 0; 
+        font-size: 22px;
+        text-align: center;
+      }
+      .summary-grid { 
+        display: grid; 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 30px; 
+        margin-top: 20px; 
+      }
+      .summary-item { 
+        text-align: center; 
+        padding: 25px; 
+        border: 2px solid #e5e7eb; 
+        border-radius: 12px; 
+        background: white;
+      }
+      .summary-value { 
+        font-size: 32px; 
+        font-weight: bold; 
+        margin: 10px 0;
+      }
+      .summary-label { 
+        color: #666; 
+        font-size: 14px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .total-users { color: #2563eb; }
+      .active-users { color: #059669; }
+      .new-users { color: #7c3aed; }
+      .activity-rate { color: #2563eb; }
+      .avg-daily { color: #059669; }
+      @media print { 
+        body { margin: 0; }
+        .no-print { display: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>User Activity Summary Report</h1>
+      <p>Generated on: ${new Date().toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })}</p>
+    </div>
+    
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-value total-users">${activityData.total_users.toLocaleString()}</div>
+        <div class="metric-label">Total Users</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value active-users">${activityData.active_users.toLocaleString()}</div>
+        <div class="metric-label">Active Users</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value new-users">${activityData.new_users_today}</div>
+        <div class="metric-label">New Users Today</div>
+      </div>
+    </div>
+    
+    <div class="summary">
+      <h2>User Activity Analysis</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-value activity-rate">
+            ${userActivityRate}%
+          </div>
+          <div class="summary-label">User Activity Rate</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-value avg-daily">
+            ${averageDailyActiveUsers}
+          </div>
+          <div class="summary-label">Average Daily Active Users</div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>`;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
 
   if (loading) {
     return (
@@ -164,25 +333,14 @@ const UserActivitySummary: React.FC = () => {
         </div>
       </div>
 
-      {/* Export Options */}
-      <div className="flex justify-end space-x-3">
+      {/* Print Option */}
+      <div className="flex justify-end">
         <button
-          onClick={() => alert('PDF export functionality coming soon!')}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+          onClick={printReport}
+          className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700 transition-colors"
         >
-          Export PDF
-        </button>
-        <button
-          onClick={() => alert('CSV export functionality coming soon!')}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-        >
-          Export CSV
-        </button>
-        <button
-          onClick={() => window.print()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
-          Print Report
+          <PrinterIcon className="h-4 w-4" />
+          <span>Print Report</span>
         </button>
       </div>
     </div>
