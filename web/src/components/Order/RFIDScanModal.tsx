@@ -348,11 +348,12 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
                     type="button"
                     onClick={handleScanRfid}
                     disabled={isVerifying || isScanning}
-                    className={`flex-1 py-3 rounded-md font-medium flex items-center justify-center gap-2 disabled:cursor-not-allowed ${
+                    className={`flex-1 py-3 rounded-md font-medium flex items-center justify-center gap-2 disabled:cursor-not-allowed border-0 ${
                       isScanning 
-                        ? 'bg-green-600 text-white animate-pulse' 
-                        : 'bg-gray-600 text-white hover:bg-gray-700 disabled:bg-gray-300'
+                        ? 'text-white animate-pulse' 
+                        : 'text-white disabled:bg-gray-300'
                     }`}
+                    style={isScanning ? { backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' } : { backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
                   >
                     <CreditCardIcon className="w-5 h-5" />
                     {isScanning ? 'Scanning...' : 'Scan RFID'}
@@ -361,7 +362,8 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
                   <button
                     type="submit"
                     disabled={isVerifying || !rfidInput.trim() || isScanning}
-                    className="flex-1 bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium"
+                    className="flex-1 text-white py-3 rounded-md disabled:bg-gray-300 disabled:cursor-not-allowed font-medium border-0"
+                    style={{ backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
                   >
                     {isVerifying ? 'Verifying...' : 'Verify Customer'}
                   </button>
@@ -412,14 +414,16 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
               <div className="flex gap-3">
                 <button
                   onClick={handleRetry}
-                  className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-md hover:bg-gray-300 font-medium"
+                  className="flex-1 text-white py-3 rounded-md font-medium border-0"
+                  style={{ backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
                 >
                   Back
                 </button>
                 <button
                   onClick={handleConfirmPayment}
                   disabled={customer.balance < orderData.total_amount || isProcessing}
-                  className="flex-1 bg-green-600 text-white py-3 rounded-md hover:bg-green-700 disabled:bg-red-500 disabled:cursor-not-allowed font-medium"
+                  className="flex-1 text-white py-3 rounded-md disabled:bg-red-500 disabled:cursor-not-allowed font-medium border-0"
+                  style={{ backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
                 >
                   {isProcessing ? 'Processing...' : customer.balance < orderData.total_amount ? 'Insufficient Balance' : 'Confirm Payment'}
                 </button>
@@ -452,7 +456,8 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
               <p className="text-red-600 mb-4">{error}</p>
               <button
                 onClick={handleRetry}
-                className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-medium"
+                className="text-white px-6 py-2 rounded-md font-medium border-0"
+                style={{ backgroundColor: '#5FA9FF', border: 'none' }}
               >
                 Try Again
               </button>

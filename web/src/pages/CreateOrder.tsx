@@ -70,48 +70,8 @@ const CreateOrder: React.FC = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        
           <div className="text-center">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
-              Order Process
-            </h2>
-            <p className="text-gray-600 mb-6">
-              The order creation process will open automatically.
-            </p>
-            
-            {/* Process Steps */}
-            <div className="flex justify-center items-center space-x-8 mb-8">
-              <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
-                  isOrderModalOpen ? 'bg-blue-600' : 'bg-green-600'
-                }`}>
-                  1
-                </div>
-                <span className="ml-2 text-sm text-gray-600">Select Products</span>
-              </div>
-              
-              <div className="w-16 h-0.5 bg-gray-300"></div>
-              
-              <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
-                  isRFIDModalOpen ? 'bg-blue-600' : !isOrderModalOpen ? 'bg-green-600' : 'bg-gray-300'
-                }`}>
-                  2
-                </div>
-                <span className="ml-2 text-sm text-gray-600">RFID Payment</span>
-              </div>
-              
-              <div className="w-16 h-0.5 bg-gray-300"></div>
-              
-              <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium ${
-                  !isOrderModalOpen && !isRFIDModalOpen ? 'bg-green-600' : 'bg-gray-300'
-                }`}>
-                  3
-                </div>
-                <span className="ml-2 text-sm text-gray-600">Complete</span>
-              </div>
-            </div>
 
             <button
               onClick={() => setIsOrderModalOpen(true)}
@@ -121,7 +81,7 @@ const CreateOrder: React.FC = () => {
               {isOrderModalOpen ? 'Order In Progress...' : 'Start New Order'}
             </button>
           </div>
-        </div>
+        
       </div>
 
       {/* Order Modal */}

@@ -26,27 +26,29 @@ const Users: React.FC = () => {
     setShowAddMoneyModal(true);
   };
 
-  const handleDelete = async (id: number) => {
-    console.log('Delete clicked for ID:', id, 'Type:', activeTab);
-    if (window.confirm('Delete this account?')) {
+  const handleToggleActive = async (account: Student | Personnel) => {
+    const action = account.is_active ? 'deactivate' : 'activate';
+    const confirmMessage = account.is_active 
+      ? 'Are you sure you want to make this account inactive?' 
+      : 'Are you sure you want to make this account active?';
+    
+    if (window.confirm(confirmMessage)) {
       try {
+        const userId = 'user_id' in account ? account.user_id : account.personnel_id;
+        const updateData = { is_active: !account.is_active };
+        
         if (activeTab === 'students') {
-          console.log('Calling deleteStudent with ID:', id);
-          const response = await adminAPI.deleteStudent(id);
-          console.log('Delete response:', response.data);
+          await adminAPI.updateStudent(userId, updateData);
         } else {
-          console.log('Calling deletePersonnel with ID:', id);
-          const response = await adminAPI.deletePersonnel(id);
-          console.log('Delete response:', response.data);
+          await adminAPI.updatePersonnel(userId, updateData);
         }
-        console.log('Delete successful!');
-        alert('Account deleted successfully!');
-        // Don't auto-refresh - let user see the console logs
-        // window.location.reload();
+        
+        alert(`Account ${action}d successfully!`);
+        // Refresh the page to show updated status
+        window.location.reload();
       } catch (err: any) {
-        console.error('Delete failed:', err);
-        console.error('Error details:', err.response?.data);
-        alert('Delete failed: ' + (err.response?.data?.message || err.message));
+        console.error('Toggle active failed:', err);
+        alert(`Failed to ${action} account: ` + (err.response?.data?.message || err.message));
       }
     }
   };
@@ -70,7 +72,8 @@ const Users: React.FC = () => {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="flex items-center px-4 py-2 text-white rounded-md hover:bg-blue-700"
+          style={{ backgroundColor: '#5FA9FF' }}
         >
           <PlusIcon className="w-5 h-5 mr-2" />
           Create Account
@@ -78,26 +81,28 @@ const Users: React.FC = () => {
       </div>
 
       {/* Simple Tab Navigation */}
-      <div className="border-b border-gray-200">
+      <div>
         <nav className="flex space-x-8">
           <button
             onClick={() => setActiveTab('students')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center ${
+            className={`py-2 px-4 font-medium text-sm flex items-center rounded-lg ${
               activeTab === 'students'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'text-white'
+                : 'text-gray-500 hover:text-gray-700'
             }`}
+            style={activeTab === 'students' ? { backgroundColor: '#5FA9FF' } : {}}
           >
             <AcademicCapIcon className="h-5 w-5 mr-2" />
             Students
           </button>
           <button
             onClick={() => setActiveTab('personnel')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center ${
+            className={`py-2 px-4 font-medium text-sm flex items-center rounded-lg ${
               activeTab === 'personnel'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'text-white'
+                : 'text-gray-500 hover:text-gray-700'
             }`}
+            style={activeTab === 'personnel' ? { backgroundColor: '#5FA9FF' } : {}}
           >
             <UserIcon className="h-5 w-5 mr-2" />
             Personnel
@@ -110,7 +115,7 @@ const Users: React.FC = () => {
         <AccountList
           accountType="student"
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onToggleActive={handleToggleActive}
           onAddMoney={handleAddMoney}
         />
       )}
@@ -119,7 +124,7 @@ const Users: React.FC = () => {
         <AccountList
           accountType="personnel"
           onEdit={handleEdit}
-          onDelete={handleDelete}
+          onToggleActive={handleToggleActive}
           onAddMoney={handleAddMoney}
         />
       )}

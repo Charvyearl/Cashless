@@ -189,31 +189,13 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
                       {quantityInOrder === 0 ? (
                         <button
                           onClick={() => addToOrder(product)}
-                          className="mt-2 bg-blue-600 text-black px-4 py-2 text-base rounded hover:bg-blue-700 inline-flex items-center gap-2"
+                          className="mt-2 text-white px-4 py-2 text-base rounded border-0 inline-flex items-center gap-2"
+                          style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                         >
                           <PlusIcon className="w-5 h-5" />
                           Add
                         </button>
-                      ) : (
-                        <div className="mt-3 flex items-center justify-center gap-3">
-                          <button
-                            onClick={() => updateQuantity(product.product_id, quantityInOrder - 1)}
-                            className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center hover:bg-red-200"
-                          >
-                            <MinusIcon className="w-4 h-4" />
-                          </button>
-                          <span className="font-medium text-lg min-w-[2rem] text-center">
-                            {quantityInOrder}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(product.product_id, quantityInOrder + 1)}
-                            disabled={quantityInOrder >= maxQuantity}
-                            className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-200 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
-                          >
-                            <PlusIcon className="w-4 h-4" />
-                          </button>
-                        </div>
-                      )}
+                      ) : null}
                     </div>
                   );
                 })}
@@ -236,7 +218,8 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
                         <h4 className="font-medium text-gray-900 text-sm">{item.product_name}</h4>
                         <button
                           onClick={() => updateQuantity(item.product_id, 0)}
-                          className="text-red-500 hover:text-red-700 text-xs"
+                          className="text-white text-xs px-2 py-1 rounded border-0"
+                          style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                         >
                           Remove
                         </button>
@@ -245,14 +228,16 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                            className="w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center hover:bg-red-200"
+                            className="w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center hover:bg-red-200 border-0"
+                            style={{ border: 'none' }}
                           >
                             <MinusIcon className="w-3 h-3" />
                           </button>
                           <span className="font-medium min-w-[1.5rem] text-center">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                            className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-200"
+                            className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-200 border-0"
+                            style={{ border: 'none' }}
                           >
                             <PlusIcon className="w-3 h-3" />
                           </button>
@@ -279,7 +264,8 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
                 </div>
                 <button
                   onClick={handleProceedToPayment}
-                  className="w-full bg-green-600 text-white py-3 rounded-md hover:bg-green-700 font-medium"
+                  className="w-full text-white py-3 rounded-md font-medium border-0"
+                  style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                 >
                   Proceed to Payment
                 </button>

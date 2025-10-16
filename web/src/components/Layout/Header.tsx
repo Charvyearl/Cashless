@@ -10,13 +10,13 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200">
+    <header className="border-b border-gray-200" style={{ backgroundColor: '#5FA9FF' }}>
       <div className="flex items-center justify-between px-6 py-4">
         {/* Left side - System branding */}
         <div className="flex items-center space-x-4">
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Cashless Canteen System</h1>
-            <p className="text-sm text-gray-600">
+            <h1 className="text-xl font-bold text-white">Cashless Canteen System</h1>
+            <p className="text-sm text-white">
               Welcome, {user?.first_name} {user?.last_name} ({user?.user_type})
             </p>
           </div>
@@ -26,7 +26,8 @@ const Header: React.FC = () => {
         <div className="flex items-center space-x-4">
           <button
             onClick={handleLogout}
-            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            className="flex items-center space-x-2 px-4 py-2 text-sm font-medium hover:text-gray-200 hover:bg-blue-600 rounded-lg transition-colors border-0"
+            style={{ color: '#5FA9FF', border: 'none' }}
           >
             <ArrowLeftOnRectangleIcon className="h-5 w-5" />
             <span>Logout</span>

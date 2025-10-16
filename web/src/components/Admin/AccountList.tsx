@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   PencilIcon,
-  TrashIcon,
+  XMarkIcon,
   CurrencyDollarIcon
 } from '@heroicons/react/24/outline';
 import { adminAPI } from '../../services/api';
@@ -10,14 +10,14 @@ import { Student, Personnel } from '../../types';
 interface AccountListProps {
   accountType: 'student' | 'personnel';
   onEdit: (account: Student | Personnel) => void;
-  onDelete: (id: number) => void;
+  onToggleActive: (account: Student | Personnel) => void;
   onAddMoney: (account: Student | Personnel) => void;
 }
 
 const AccountList: React.FC<AccountListProps> = ({
   accountType,
   onEdit,
-  onDelete,
+  onToggleActive,
   onAddMoney
 }) => {
   const [accounts, setAccounts] = useState<(Student | Personnel)[]>([]);
@@ -139,24 +139,27 @@ const AccountList: React.FC<AccountListProps> = ({
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => onAddMoney(account)}
-                      className="p-2 text-gray-400 hover:text-green-600"
+                      className="p-2 text-white rounded-lg border-0"
+                      style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                       title="Add money"
                     >
                       <CurrencyDollarIcon className="h-5 w-5" />
                     </button>
                     <button
                       onClick={() => onEdit(account)}
-                      className="p-2 text-gray-400 hover:text-blue-600"
+                      className="p-2 text-white rounded-lg border-0"
+                      style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                       title="Edit"
                     >
                       <PencilIcon className="h-5 w-5" />
                     </button>
                     <button
-                      onClick={() => onDelete(accountType === 'student' ? (account as Student).user_id : (account as Personnel).personnel_id)}
-                      className="p-2 text-gray-400 hover:text-red-600"
-                      title="Delete"
+                      onClick={() => onToggleActive(account)}
+                      className="p-2 text-white rounded-lg border-0"
+                      style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+                      title={account.is_active ? "Make Inactive" : "Make Active"}
                     >
-                      <TrashIcon className="h-5 w-5" />
+                      <XMarkIcon className="h-5 w-5" />
                     </button>
                   </div>
                 </div>

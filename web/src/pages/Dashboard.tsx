@@ -107,6 +107,10 @@ const Dashboard: React.FC = () => {
     try {
       setLoadingTransactions(true);
       const response = await canteenOrdersAPI.getOrders({ limit: 100 });
+      console.log('Admin Dashboard - Full response:', response);
+      console.log('Admin Dashboard - Response data:', response.data);
+      console.log('Admin Dashboard - Response data.data:', response.data?.data);
+      console.log('Admin Dashboard - Transactions:', response.data?.data?.transactions);
       setTransactions(response.data?.data?.transactions || []);
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
@@ -140,25 +144,29 @@ const Dashboard: React.FC = () => {
     setShowAddMoneyModal(true);
   };
 
-  const handleDelete = async (id: number) => {
-    console.log('Delete clicked for ID:', id, 'Type:', userManagementTab);
-    if (window.confirm('Delete this account?')) {
+  const handleToggleActive = async (account: Student | Personnel) => {
+    const action = account.is_active ? 'deactivate' : 'activate';
+    const confirmMessage = account.is_active 
+      ? 'Are you sure you want to make this account inactive?' 
+      : 'Are you sure you want to make this account active?';
+    
+    if (window.confirm(confirmMessage)) {
       try {
+        const userId = 'user_id' in account ? account.user_id : account.personnel_id;
+        const updateData = { is_active: !account.is_active };
+        
         if (userManagementTab === 'students') {
-          console.log('Calling deleteStudent with ID:', id);
-          const response = await adminAPI.deleteStudent(id);
-          console.log('Delete response:', response.data);
+          await adminAPI.updateStudent(userId, updateData);
         } else {
-          console.log('Calling deletePersonnel with ID:', id);
-          const response = await adminAPI.deletePersonnel(id);
-          console.log('Delete response:', response.data);
+          await adminAPI.updatePersonnel(userId, updateData);
         }
-        console.log('Delete successful!');
-        alert('Account deleted successfully!');
+        
+        alert(`Account ${action}d successfully!`);
+        // Refresh the page to show updated status
+        window.location.reload();
       } catch (err: any) {
-        console.error('Delete failed:', err);
-        console.error('Error details:', err.response?.data);
-        alert('Delete failed: ' + (err.response?.data?.message || err.message));
+        console.error('Toggle active failed:', err);
+        alert(`Failed to ${action} account: ` + (err.response?.data?.message || err.message));
       }
     }
   };
@@ -217,17 +225,18 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Navigation Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+      <div>
+        <nav className="flex space-x-8">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              className={`py-2 px-4 font-medium text-sm rounded-lg border-0 ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  ? 'text-white'
+                  : 'text-gray-500 hover:text-gray-700'
               }`}
+              style={activeTab === tab.id ? { backgroundColor: '#5FA9FF', border: 'none' } : { border: 'none' }}
             >
               {tab.name}
             </button>
@@ -247,7 +256,8 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center space-x-4">
               <button 
                 onClick={() => setShowCreateModal(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
+                className="flex items-center space-x-1 px-4 py-2 text-white rounded-lg transition-colors border-0"
+                style={{ backgroundColor: '#5FA9FF', border: 'none' }}
               >
                 <PlusIcon className="h-5 w-5" />
                 <span>Add User</span>
@@ -256,26 +266,28 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* User Management Tab Navigation */}
-          <div className="border-b border-gray-200">
+          <div>
             <nav className="flex space-x-8">
               <button
                 onClick={() => setUserManagementTab('students')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center ${
+                className={`py-2 px-4 font-medium text-sm flex items-center rounded-lg border-0 ${
                   userManagementTab === 'students'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'text-white'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
+                style={userManagementTab === 'students' ? { backgroundColor: '#5FA9FF', border: 'none' } : { border: 'none' }}
               >
                 <AcademicCapIcon className="h-5 w-5 mr-2" />
                 Students
               </button>
               <button
                 onClick={() => setUserManagementTab('personnel')}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center ${
+                className={`py-2 px-4 font-medium text-sm flex items-center rounded-lg border-0 ${
                   userManagementTab === 'personnel'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'text-white'
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
+                style={userManagementTab === 'personnel' ? { backgroundColor: '#5FA9FF', border: 'none' } : { border: 'none' }}
               >
                 <UserIcon className="h-5 w-5 mr-2" />
                 Personnel
@@ -288,7 +300,7 @@ const Dashboard: React.FC = () => {
             <AccountList
               accountType="student"
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onToggleActive={handleToggleActive}
               onAddMoney={handleAddMoney}
             />
           )}
@@ -297,7 +309,7 @@ const Dashboard: React.FC = () => {
             <AccountList
               accountType="personnel"
               onEdit={handleEdit}
-              onDelete={handleDelete}
+              onToggleActive={handleToggleActive}
               onAddMoney={handleAddMoney}
             />
           )}

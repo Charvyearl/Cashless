@@ -4,6 +4,7 @@ const CanteenTransaction = require('../models/CanteenTransaction');
 const TransactionItem = require('../models/TransactionItem');
 const Product = require('../models/Product');
 const { verifyToken } = require('../middleware/auth');
+const { pool } = require('../config/database');
 
 // Create a new order (transaction)
 router.post('/create', verifyToken, async (req, res) => {
@@ -64,12 +65,29 @@ router.post('/create', verifyToken, async (req, res) => {
     }
 
     // Create the transaction and attribute to the logged-in personnel (if staff)
+    // Only set personnel_id if the user is actually in the personnel table
+    let personnelId = null;
+    if (req.user && (req.user.user_type === 'staff' || req.user.user_type === 'admin')) {
+      // Check if the user exists in the personnel table
+      try {
+        const [personnelRows] = await pool.execute(
+          'SELECT personnel_id FROM personnel WHERE personnel_id = ?',
+          [req.user.id]
+        );
+        if (personnelRows.length > 0) {
+          personnelId = req.user.id;
+        }
+      } catch (error) {
+        console.log('Personnel lookup failed, proceeding without personnel_id');
+      }
+    }
+
     const transaction = await CanteenTransaction.create({
       total_amount: totalAmount,
       status: 'pending',
       payment_method: 'rfid',
       user_id: req.user && req.user.user_type === 'student' ? req.user.id : null,
-      personnel_id: req.user && (req.user.user_type === 'staff' || req.user.user_type === 'admin') ? req.user.id : null,
+      personnel_id: personnelId,
     });
 
     // Create transaction items
@@ -249,8 +267,12 @@ router.get('/', verifyToken, async (req, res) => {
     // Automatically filter by the authenticated user
     if (req.user.user_type === 'student') {
       options.userId = req.user.id;
-    } else if (req.user.user_type === 'staff' || req.user.user_type === 'admin') {
-      options.personnelId = req.user.id;
+    } else if (req.user.user_type === 'staff') {
+      // Canteen staff can see all canteen transactions, not just their own
+      // Don't set personnelId filter for staff users
+    } else if (req.user.user_type === 'admin') {
+      // Admins can see all transactions
+      // Don't set any filters for admin users
     }
 
     const transactions = await CanteenTransaction.findAll(options);

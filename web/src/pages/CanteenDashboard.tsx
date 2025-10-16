@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { menuAPI, canteenOrdersAPI } from '../services/api';
+import { menuAPI, canteenOrdersAPI, transactionsAPI } from '../services/api';
 import { FunnelIcon, ArrowPathIcon, PlusIcon } from '@heroicons/react/24/outline';
 
 type InventoryStatus = 'available' | 'out_of_stock' | 'disabled';
@@ -114,20 +114,31 @@ const CanteenDashboard: React.FC = () => {
     loadOrders();
   }, []);
 
+  const fetchTransactions = async () => {
+    try {
+      setLoadingTransactions(true);
+      // The canteen orders API filters by personnel_id, so we need to get all transactions
+      // by making multiple calls with different personnel IDs or by using a different approach
+      const response = await canteenOrdersAPI.getOrders({ limit: 100 });
+      console.log('Canteen Dashboard - Full response:', response);
+      console.log('Canteen Dashboard - Response data:', response.data);
+      console.log('Canteen Dashboard - Response data.data:', response.data?.data);
+      console.log('Canteen Dashboard - Transactions:', response.data?.data?.transactions);
+      
+      setTransactions(response.data?.data?.transactions || []);
+    } catch (error) {
+      console.error('Failed to fetch transactions:', error);
+      setTransactions([]);
+    } finally {
+      setLoadingTransactions(false);
+    }
+  };
+
   useEffect(() => {
-    const loadTransactions = async () => {
-      try {
-        setLoadingTransactions(true);
-        const res = await canteenOrdersAPI.getOrders({ limit: 100 });
-        setTransactions(res.data?.data?.transactions || []);
-      } catch (e) {
-        console.error('Failed to load transactions', e);
-      } finally {
-        setLoadingTransactions(false);
-      }
-    };
-    loadTransactions();
-  }, []);
+    if (activeTab === 'transaction') {
+      fetchTransactions();
+    }
+  }, [activeTab]);
 
 
   return (
@@ -141,7 +152,8 @@ const CanteenDashboard: React.FC = () => {
         <div className="flex items-center gap-3">
           <button 
             onClick={() => navigate('/canteen/order')}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800"
+            className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-md border-0"
+            style={{ backgroundColor: '#5FA9FF', border: 'none' }}
           >
             <PlusIcon className="w-5 h-5" />
              Order
@@ -159,9 +171,33 @@ const CanteenDashboard: React.FC = () => {
 
       {/* Tabs */}
       <div className="rounded-full border border-gray-300 flex overflow-hidden w-full">
-        <button onClick={() => setActiveTab('orders')} className={`flex-1 px-4 py-2 text-sm ${activeTab === 'orders' ? 'bg-gray-100' : ''}`}>Order Management</button>
-        <button onClick={() => setActiveTab('menu')} className={`flex-1 px-4 py-2 text-sm ${activeTab === 'menu' ? 'bg-gray-100' : ''}`}>Menu & Inventory</button>
-        <button onClick={() => setActiveTab('transaction')} className={`flex-1 px-4 py-2 text-sm ${activeTab === 'transaction' ? 'bg-gray-100' : ''}`}>Transaction</button>
+        <button 
+          onClick={() => setActiveTab('orders')} 
+          className={`flex-1 px-4 py-2 text-sm border-0 ${
+            activeTab === 'orders' ? 'text-white' : 'text-gray-700'
+          }`}
+          style={activeTab === 'orders' ? { backgroundColor: '#5FA9FF', border: 'none' } : { border: 'none' }}
+        >
+          Order Management
+        </button>
+        <button 
+          onClick={() => setActiveTab('menu')} 
+          className={`flex-1 px-4 py-2 text-sm border-0 ${
+            activeTab === 'menu' ? 'text-white' : 'text-gray-700'
+          }`}
+          style={activeTab === 'menu' ? { backgroundColor: '#5FA9FF', border: 'none' } : { border: 'none' }}
+        >
+          Menu & Inventory
+        </button>
+        <button 
+          onClick={() => setActiveTab('transaction')} 
+          className={`flex-1 px-4 py-2 text-sm border-0 ${
+            activeTab === 'transaction' ? 'text-white' : 'text-gray-700'
+          }`}
+          style={activeTab === 'transaction' ? { backgroundColor: '#5FA9FF', border: 'none' } : { border: 'none' }}
+        >
+          Transaction
+        </button>
       </div>
 
       {/* Orders / Inventory / Analytics sections */}
@@ -287,7 +323,7 @@ const CanteenDashboard: React.FC = () => {
                   <FunnelIcon className="w-5 h-5 text-gray-400 absolute left-2 top-2.5" />
                 </div>
               </div>
-              <button onClick={() => navigate('/canteen/add')} className="inline-flex items-center gap-2 px-3 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800">
+              <button onClick={() => navigate('/canteen/add')} className="inline-flex items-center gap-2 px-3 py-2 text-white rounded-md border-0" style={{ backgroundColor: '#5FA9FF', border: 'none' }}>
                 <PlusIcon className="w-5 h-5" />
                 Add Item
               </button>
