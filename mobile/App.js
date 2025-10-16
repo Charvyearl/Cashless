@@ -27,32 +27,6 @@ export default function App() {
   const [authToken, setAuthTokenState] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [initialBalance, setInitialBalance] = useState(0);
-  const [backendStatus, setBackendStatus] = useState(null); // 'ok' | 'fail' | null
-
-  // On app start, verify backend connectivity
-  useEffect(() => {
-    let isMounted = true;
-    const ping = async () => {
-      try {
-        const url = `${getBaseUrl()}/health`;
-        const res = await fetch(url);
-        if (!isMounted) return;
-        if (res.ok) {
-          setBackendStatus('ok');
-          Alert.alert('Connected', 'You are connected to backend');
-        } else {
-          setBackendStatus('fail');
-          Alert.alert('Connection failed', 'Cannot reach backend');
-        }
-      } catch (_) {
-        if (!isMounted) return;
-        setBackendStatus('fail');
-        Alert.alert('Connection failed', 'Cannot reach backend');
-      }
-    };
-    ping();
-    return () => { isMounted = false; };
-  }, []);
 
   const handleRoleSelect = (role) => {
     if (selectedRole === role) {
@@ -99,8 +73,32 @@ export default function App() {
       }
     } catch (err) {
       const status = err?.response?.status;
-      const msg = err?.response?.data?.message || err?.message || 'Unable to login. Please try again.';
-      Alert.alert('Login failed', `${msg}${status ? ` (HTTP ${status})` : ''}`);
+      const responseMsg = err?.response?.data?.message || err?.response?.data?.error;
+      let errorMessage = 'Unable to login. Please try again.';
+      
+      // Provide specific error messages based on the response
+      if (status === 401) {
+        if (responseMsg?.toLowerCase().includes('invalid credentials') || 
+            responseMsg?.toLowerCase().includes('password') ||
+            responseMsg?.toLowerCase().includes('authentication failed')) {
+          errorMessage = 'Incorrect email or password. Please check your credentials and try again.';
+        } else {
+          errorMessage = 'Authentication failed. Please check your email and password.';
+        }
+      } else if (status === 404) {
+        errorMessage = 'Account not found. Please check your email address.';
+      } else if (status === 403) {
+        errorMessage = 'Account access denied. Please contact your administrator.';
+      } else if (status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (responseMsg) {
+        errorMessage = responseMsg;
+      } else if (err?.message?.includes('Network Error') || err?.message?.includes('fetch')) {
+        errorMessage = 'Network connection failed. Please check your internet connection and try again.';
+      }
+      
+      Alert.alert('Login Failed', errorMessage);
+      
       // Dev log
       console.log('Login error details:', {
         baseUrl: getBaseUrl(),
@@ -108,6 +106,7 @@ export default function App() {
         data: err?.response?.data,
         url: err?.config?.url,
         method: err?.config?.method,
+        originalMessage: err?.message,
       });
     }
   };
@@ -259,14 +258,6 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      {/* Backend connection status banner */}
-      {backendStatus && (
-        <View style={[styles.statusBanner, backendStatus === 'ok' ? styles.statusOk : styles.statusFail]}>
-          <Text style={styles.statusText}>
-            {backendStatus === 'ok' ? 'Connected to backend' : 'Cannot reach backend'}
-          </Text>
-        </View>
-      )}
 
       {/* Render appropriate screen */}
       {currentScreen === 'student-dashboard' ? (
@@ -435,26 +426,6 @@ const styles = StyleSheet.create({
   backButtonText: {
     color: '#87CEEB',
     fontSize: 16,
-    fontWeight: '500',
-  },
-  statusBanner: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingVertical: 8,
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  statusOk: {
-    backgroundColor: '#e6f7ec',
-  },
-  statusFail: {
-    backgroundColor: '#fdecea',
-  },
-  statusText: {
-    color: '#333',
-    fontSize: 12,
     fontWeight: '500',
   },
 });
