@@ -8,9 +8,11 @@ import {
   Image,
   Alert,
   ScrollView,
+  Animated,
 } from 'react-native';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import StudentHome from './StudentHome';
 import TransactionHistory from './TransactionHistory';
 import BottomNavigation from '../components/BottomNavigation';
@@ -19,6 +21,8 @@ import { walletAPI } from '../api/client';
 export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
   const [activeTab, setActiveTab] = useState('home'); // 'home', 'transaction'
   const [balance, setBalance] = useState(initialBalance);
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(30));
 
   useEffect(() => {
     let isMounted = true;
@@ -34,6 +38,22 @@ export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
     };
     load();
     return () => { isMounted = false; };
+  }, []);
+
+  // Animation effects
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
   }, []);
 
   const handleLogout = () => {
@@ -55,17 +75,30 @@ export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
     <SafeAreaView style={styles.container}>
       <StatusBar style="dark" />
       
-      {/* Top Bar */}
-      <View style={styles.topBar}>
-        <Image 
-          source={require('../../assets/images/mysmclogo.webp')} 
-          style={styles.topBarLogo}
-          resizeMode="contain"
-        />
+      {/* Modern Top Bar */}
+      <Animated.View 
+        style={[
+          styles.topBar,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
+        <View style={styles.topBarLeft}>
+          <View style={styles.logoContainer}>
+            <Image 
+              source={require('../../assets/images/mysmclogo.webp')} 
+              style={styles.topBarLogo}
+              resizeMode="contain"
+            />
+          </View>
+        </View>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={20} color="#FFFFFF" />
           <Text style={styles.logoutButtonText}>Logout</Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
       {/* Scrollable content (keeps header/top bar fixed) */}
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100 }} nestedScrollEnabled>
@@ -77,23 +110,42 @@ export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
           </View>
         </View>
 
-        {/* Balance Card */}
-        <View style={styles.balanceCard}>
-          <View style={styles.balanceHeader}>
-            <Text style={styles.balanceIcon}>💳</Text>
-            <Text style={styles.balanceTitle}>Balance</Text>
+        {/* Modern Balance Card */}
+        <Animated.View 
+          style={[
+            styles.balanceCard,
+            {
+              opacity: fadeAnim,
+              transform: [{ translateY: slideAnim }]
+            }
+          ]}
+        >
+          <View style={styles.balanceCardHeader}>
+            <View style={styles.balanceIconContainer}>
+              <Ionicons name="wallet-outline" size={24} color="#00BCD4" />
+            </View>
+            <View style={styles.balanceInfo}>
+              <Text style={styles.balanceTitle}>Wallet Balance</Text>
+              <Text style={styles.balanceSubtitle}>Available funds</Text>
+            </View>
           </View>
-          <Text style={styles.balanceSubtitle}>Your current wallet balance</Text>
+          
           <View style={styles.balanceAmountContainer}>
             <Text style={styles.balanceAmount}>₱{Number(balance).toFixed(2)}</Text>
           </View>
+
           <View style={styles.studentInfo}>
-            <View style={styles.studentInfoColumn}>
-              <Text style={styles.studentInfoLabel}>Student Name</Text>
-              <Text style={styles.studentInfoValue}>{user ? `${user.first_name} ${user.last_name}` : '—'}</Text>
+            <View style={styles.studentInfoRow}>
+              <View style={styles.studentInfoItem}>
+                <Ionicons name="person-outline" size={16} color="#666" />
+                <Text style={styles.studentInfoLabel}>Student</Text>
+              </View>
+              <Text style={styles.studentInfoValue}>
+                {user ? `${user.first_name} ${user.last_name}` : '—'}
+              </Text>
             </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Content Area */}
         <View style={styles.contentContainer}>
@@ -117,30 +169,47 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f9fa',
   },
   topBar: {
-    backgroundColor: '#87CEEB',
+    backgroundColor: '#00BCD4',
     paddingTop: 50,
-    paddingBottom: 15,
+    paddingBottom: 16,
     paddingHorizontal: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  topBarLeft: {
+    flex: 1,
+  },
+  logoContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
   },
   topBarLogo: {
-    width: 100,
-    height: 30,
+    width: 120,
+    height: 32,
   },
   logoutButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   logoutButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
+    marginLeft: 6,
   },
   dashboardHeader: {
     backgroundColor: 'white',
@@ -162,67 +231,83 @@ const styles = StyleSheet.create({
     marginTop: 5,
   },
   balanceCard: {
-    backgroundColor: 'white',
+    backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
-    marginVertical: 15,
-    padding: 20,
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    marginVertical: 16,
+    padding: 24,
+    borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 12,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
-  balanceHeader: {
+  balanceCardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 16,
   },
-  balanceIcon: {
-    fontSize: 16,
-    marginRight: 8,
+  balanceIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(0, 188, 212, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  balanceInfo: {
+    flex: 1,
   },
   balanceTitle: {
     fontSize: 18,
     fontWeight: '600',
     color: '#333',
+    marginBottom: 4,
   },
   balanceSubtitle: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 15,
   },
   balanceAmountContainer: {
-    backgroundColor: '#e8f5e8',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 8,
+    backgroundColor: 'rgba(0, 188, 212, 0.05)',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderRadius: 12,
     marginBottom: 20,
     alignSelf: 'flex-start',
   },
   balanceAmount: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2e7d32',
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#00BCD4',
   },
   studentInfo: {
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    paddingTop: 16,
+  },
+  studentInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  studentInfoColumn: {
-    flex: 1,
+  studentInfoItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   studentInfoLabel: {
     fontSize: 12,
     color: '#666',
-    marginBottom: 5,
+    marginLeft: 6,
+    fontWeight: '500',
   },
   studentInfoValue: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#333',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   contentContainer: {
     flex: 1,

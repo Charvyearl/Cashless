@@ -9,9 +9,13 @@ import {
   Image,
   Dimensions,
   Alert,
-  TextInput
+  TextInput,
+  Animated,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import Dashboard from './src/screens/Dashboard';
 import PersonnelDashboard from './src/screens/PersonnelDashboard';
 import { authAPI, setAuthToken, getBaseUrl } from './src/api/client';
@@ -27,6 +31,24 @@ export default function App() {
   const [authToken, setAuthTokenState] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [initialBalance, setInitialBalance] = useState(0);
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [slideAnim] = useState(new Animated.Value(50));
+
+  // Animation effects
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 1000,
+        useNativeDriver: true,
+      }),
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   const handleRoleSelect = (role) => {
     if (selectedRole === role) {
@@ -132,83 +154,165 @@ export default function App() {
 
   // Render Landing Screen
   const renderLandingScreen = () => (
-    <View style={styles.content}>
-      {/* Logo and Welcome Text */}
-      <View style={styles.header}>
+    <KeyboardAvoidingView 
+      style={styles.content} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <Animated.View 
+        style={[
+          styles.header,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
+        {/* Logo and Welcome Text */}
         <View style={styles.logoContainer}>
-          <Image 
-            source={require('./assets/images/mysmclogo.webp')} 
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
+          <View style={styles.logoWrapper}>
+            <Image 
+              source={require('./assets/images/mysmclogo.webp')} 
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={styles.welcomeText}>Welcome to</Text>
+          <Text style={styles.appTitle}>Cashless Canteen</Text>
+          <Text style={styles.subtitle}>Your digital wallet for seamless dining</Text>
         </View>
-        <Text style={styles.welcomeText}>Welcome to MySmc Wallet!</Text>
-      </View>
+      </Animated.View>
 
-      {/* Role Selection Buttons */}
-      <View style={styles.buttonContainer}>
+      {/* Role Selection Cards */}
+      <Animated.View 
+        style={[
+          styles.buttonContainer,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
         <TouchableOpacity
           style={[
-            styles.roleButton,
-            selectedRole === 'student' && styles.roleButtonActive
+            styles.roleCard,
+            selectedRole === 'student' && styles.roleCardActive
           ]}
           onPress={() => handleRoleSelect('student')}
           activeOpacity={0.8}
         >
-          <Text style={[
-            styles.roleButtonText,
-            selectedRole === 'student' && styles.roleButtonTextActive
-          ]}>
-            Student
-          </Text>
+          <View style={styles.roleCardContent}>
+            <View style={styles.roleIconContainer}>
+              <Ionicons 
+                name="school-outline" 
+                size={32} 
+                color={selectedRole === 'student' ? '#FFFFFF' : '#00BCD4'} 
+              />
+            </View>
+            <Text style={[
+              styles.roleCardTitle,
+              selectedRole === 'student' && styles.roleCardTitleActive
+            ]}>
+              Student
+            </Text>
+            <Text style={[
+              styles.roleCardSubtitle,
+              selectedRole === 'student' && styles.roleCardSubtitleActive
+            ]}>
+              Browse menu and make payments
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
-            styles.roleButton,
-            selectedRole === 'personnel' && styles.roleButtonActive
+            styles.roleCard,
+            selectedRole === 'personnel' && styles.roleCardActive
           ]}
           onPress={() => handleRoleSelect('personnel')}
           activeOpacity={0.8}
         >
-          <Text style={[
-            styles.roleButtonText,
-            selectedRole === 'personnel' && styles.roleButtonTextActive
-          ]}>
-            Personnel
-          </Text>
+          <View style={styles.roleCardContent}>
+            <View style={styles.roleIconContainer}>
+              <Ionicons 
+                name="restaurant-outline" 
+                size={32} 
+                color={selectedRole === 'personnel' ? '#FFFFFF' : '#00BCD4'} 
+              />
+            </View>
+            <Text style={[
+              styles.roleCardTitle,
+              selectedRole === 'personnel' && styles.roleCardTitleActive
+            ]}>
+              Personnel
+            </Text>
+            <Text style={[
+              styles.roleCardSubtitle,
+              selectedRole === 'personnel' && styles.roleCardSubtitleActive
+            ]}>
+              Manage orders and reservations
+            </Text>
+          </View>
         </TouchableOpacity>
-      </View>
-    </View>
+      </Animated.View>
+    </KeyboardAvoidingView>
   );
 
 
   // Render Login Screen
   const renderLoginScreen = () => (
-    <View style={styles.content}>
-      {/* Logo and Welcome Text */}
-      <View style={styles.header}>
+    <KeyboardAvoidingView 
+      style={styles.content} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      {/* Header with Logo */}
+      <Animated.View 
+        style={[
+          styles.header,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
         <View style={styles.logoContainer}>
-          <Image 
-            source={require('./assets/images/mysmclogo.webp')} 
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
+          <View style={styles.logoWrapper}>
+            <Image 
+              source={require('./assets/images/mysmclogo.webp')} 
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </View>
+          <Text style={styles.welcomeText}>Welcome Back!</Text>
+          <Text style={styles.roleSubtitle}>
+            {currentScreen.charAt(0).toUpperCase() + currentScreen.slice(1)} Login
+          </Text>
         </View>
-        <Text style={styles.welcomeText}>Welcome to MySmc Wallet!</Text>
-      </View>
+      </Animated.View>
 
-      {/* Login Form Card */}
-      <View style={styles.loginCard}>
-        <Text style={styles.loginTitle}>Login</Text>
-        <Text style={styles.roleSubtitle}>as {currentScreen.charAt(0).toUpperCase() + currentScreen.slice(1)}</Text>
+      {/* Modern Login Form Card */}
+      <Animated.View 
+        style={[
+          styles.loginCard,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }]
+          }
+        ]}
+      >
+        <View style={styles.loginCardHeader}>
+          <Ionicons name="log-in-outline" size={24} color="#00BCD4" />
+          <Text style={styles.loginTitle}>Sign In</Text>
+        </View>
         
         {/* Email Input */}
         <View style={styles.inputContainer}>
-          <Text style={styles.inputIcon}>👤</Text>
+          <View style={styles.inputIconContainer}>
+            <Ionicons name="mail-outline" size={20} color="#00BCD4" />
+          </View>
           <TextInput
             style={styles.textInput}
-            placeholder={`Email`}
+            placeholder="Enter your email"
+            placeholderTextColor="#999"
             value={username}
             onChangeText={setUsername}
             autoCapitalize="none"
@@ -219,10 +323,13 @@ export default function App() {
 
         {/* Password Input */}
         <View style={styles.inputContainer}>
-          <Text style={styles.inputIcon}>🔒</Text>
+          <View style={styles.inputIconContainer}>
+            <Ionicons name="lock-closed-outline" size={20} color="#00BCD4" />
+          </View>
           <TextInput
             style={styles.textInput}
-            placeholder="Password"
+            placeholder="Enter your password"
+            placeholderTextColor="#999"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
@@ -233,13 +340,20 @@ export default function App() {
             onPress={() => setShowPassword(!showPassword)}
             style={styles.eyeIcon}
           >
-            <Text style={styles.eyeIconText}>{showPassword ? '👁️' : '👁️'}</Text>
+            <Ionicons 
+              name={showPassword ? "eye-outline" : "eye-off-outline"} 
+              size={20} 
+              color="#999" 
+            />
           </TouchableOpacity>
         </View>
 
         {/* Login Button */}
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Log in</Text>
+          <View style={styles.loginButtonContent}>
+            <Ionicons name="arrow-forward" size={20} color="#FFFFFF" />
+            <Text style={styles.loginButtonText}>Sign In</Text>
+          </View>
         </TouchableOpacity>
 
         {/* Back Button */}
@@ -247,10 +361,13 @@ export default function App() {
           style={styles.backButton} 
           onPress={goBack}
         >
-          <Text style={styles.backButtonText}>← Back to Role Selection</Text>
+          <View style={styles.backButtonContent}>
+            <Ionicons name="arrow-back" size={16} color="#00BCD4" />
+            <Text style={styles.backButtonText}>Back to Role Selection</Text>
+          </View>
         </TouchableOpacity>
-      </View>
-    </View>
+      </Animated.View>
+    </KeyboardAvoidingView>
   );
 
   return (
@@ -294,84 +411,132 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 60,
-    marginTop: -100,
+    marginBottom: 40,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 20,
   },
-  logoImage: {
-    width: 800,
-    height: 100,
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: 'black',
-    fontWeight: '500',
-  },
-  buttonContainer: {
-    width: '100%',
-    maxWidth: 300,
-  },
-  roleButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-    borderRadius: 12,
+  logoWrapper: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 20,
+    padding: 16,
     marginBottom: 16,
-    alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     elevation: 5,
   },
-  roleButtonActive: {
-    backgroundColor: '#87CEEB',
+  logoImage: {
+    width: 120,
+    height: 40,
   },
-  roleButtonText: {
+  welcomeText: {
     fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: '300',
+    marginBottom: 4,
+  },
+  appTitle: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  // Role Selection Cards
+  buttonContainer: {
+    width: '100%',
+    gap: 16,
+  },
+  roleCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 16,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  roleCardActive: {
+    backgroundColor: '#00BCD4',
+    borderColor: '#FFFFFF',
+    transform: [{ scale: 1.02 }],
+  },
+  roleCardContent: {
+    alignItems: 'center',
+  },
+  roleIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(0, 188, 212, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  roleCardTitle: {
+    fontSize: 20,
     fontWeight: '600',
     color: '#333',
+    marginBottom: 4,
   },
-  roleButtonTextActive: {
-    color: '#fff',
+  roleCardTitleActive: {
+    color: '#FFFFFF',
+  },
+  roleCardSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+  },
+  roleCardSubtitleActive: {
+    color: 'rgba(255, 255, 255, 0.9)',
   },
   // Login form styles
   loginCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    marginHorizontal: 20,
-    paddingVertical: 30,
-    paddingHorizontal: 25,
-    borderRadius: 15,
+    width: '100%',
+    maxWidth: 400,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    borderRadius: 20,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
     elevation: 8,
   },
+  loginCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
   loginTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '600',
     color: '#333',
-    textAlign: 'center',
+    marginLeft: 8,
     marginBottom: 5,
   },
   roleSubtitle: {
@@ -383,49 +548,63 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    marginBottom: 15,
-    paddingHorizontal: 15,
+    backgroundColor: '#F8F9FA',
+    borderRadius: 12,
+    marginBottom: 16,
+    paddingHorizontal: 16,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#E9ECEF',
+    minHeight: 56,
   },
-  inputIcon: {
-    fontSize: 20,
-    marginRight: 10,
+  inputIconContainer: {
+    marginRight: 12,
   },
   textInput: {
     flex: 1,
-    paddingVertical: 15,
+    paddingVertical: 16,
     fontSize: 16,
     color: '#333',
+    fontWeight: '400',
   },
   eyeIcon: {
-    padding: 5,
-  },
-  eyeIconText: {
-    fontSize: 20,
+    padding: 8,
+    marginLeft: 8,
   },
   loginButton: {
-    backgroundColor: '#87CEEB',
-    paddingVertical: 15,
-    borderRadius: 10,
+    backgroundColor: '#00BCD4',
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
+    marginTop: 8,
+    marginBottom: 16,
+    shadowColor: '#00BCD4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  loginButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   loginButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
+    marginLeft: 8,
   },
   backButton: {
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 12,
+  },
+  backButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   backButtonText: {
-    color: '#87CEEB',
+    color: '#00BCD4',
     fontSize: 16,
     fontWeight: '500',
+    marginLeft: 4,
   },
 });

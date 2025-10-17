@@ -7,7 +7,9 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Animated,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function StudentHome() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,6 +17,7 @@ export default function StudentHome() {
   const [categories, setCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fadeAnim] = useState(new Animated.Value(0));
 
   useEffect(() => {
     let isMounted = true;
@@ -76,6 +79,15 @@ export default function StudentHome() {
     return () => { isMounted = false; };
   }, [selectedCategoryId, categories.length]);
 
+  // Animation effect
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 600,
+      useNativeDriver: true,
+    }).start();
+  }, [items]);
+
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
@@ -110,26 +122,53 @@ export default function StudentHome() {
           contentContainerStyle={{ paddingBottom: 120, gap: 12 }}
           showsVerticalScrollIndicator={false}
         >
-          {items.map((item) => (
-            <View key={item.id || item.product_id} style={styles.menuItemCard}>
+          {items.map((item, index) => (
+            <Animated.View 
+              key={item.id || item.product_id} 
+              style={[
+                styles.menuItemCard,
+                {
+                  opacity: fadeAnim,
+                  transform: [{ translateY: fadeAnim.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0]
+                  })}]
+                }
+              ]}
+            >
               <View style={styles.menuItemHeader}>
-                <Text style={styles.menuItemName}>{item.name || item.product_name}</Text>
-                <Text style={styles.menuItemPrice}>₱{Number(item.price).toFixed(2)}</Text>
-              </View>
-              {!!(item.category || item.category_name) && (
-                <View style={styles.menuItemCategory}>
-                  <Text style={styles.categoryTag}>{item.category || item.category_name}</Text>
+                <View style={styles.menuItemTitleContainer}>
+                  <Text style={styles.menuItemName}>{item.name || item.product_name}</Text>
+                  {!!(item.category || item.category_name) && (
+                    <View style={styles.menuItemCategory}>
+                      <Ionicons name="pricetag-outline" size={12} color="#00BCD4" />
+                      <Text style={styles.categoryTag}>{item.category || item.category_name}</Text>
+                    </View>
+                  )}
                 </View>
-              )}
+                <View style={styles.priceContainer}>
+                  <Text style={styles.menuItemPrice}>₱{Number(item.price).toFixed(2)}</Text>
+                </View>
+              </View>
+              
               {item.description ? (
                 <Text style={styles.menuItemDescription}>{item.description}</Text>
               ) : null}
-              <TouchableOpacity style={styles.availabilityButton}>
-                <Text style={styles.availabilityButtonText}>
-                  {item.is_available ? 'Available at the Canteen' : 'Currently Unavailable'}
-                </Text>
-              </TouchableOpacity>
-            </View>
+              
+              <View style={styles.menuItemFooter}>
+                <View style={styles.stockInfo}>
+                  <Ionicons name="cube-outline" size={14} color="#666" />
+                  <Text style={styles.stockText}>
+                    {item.stock_quantity || 0} in stock
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.availabilityButton}>
+                  <Text style={styles.availabilityButtonText}>
+                    {item.is_available ? 'Available at the Canteen' : 'Currently Unavailable'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
           ))}
         </ScrollView>
       )}
