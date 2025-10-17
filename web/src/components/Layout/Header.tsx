@@ -14,6 +14,14 @@ const Header: React.FC = () => {
       <div className="flex items-center justify-between px-6 py-4">
         {/* Left side - System branding */}
         <div className="flex items-center space-x-4">
+          {/* my.SMC Logo */}
+          <div className="flex items-center">
+            <img 
+              src="/mysmclogo.webp" 
+              alt="my.SMC Logo" 
+              className="h-8 w-auto"
+            />
+          </div>
           <div>
             <h1 className="text-xl font-bold text-white">Cashless Canteen System</h1>
             <p className="text-sm text-white">

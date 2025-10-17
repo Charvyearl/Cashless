@@ -136,7 +136,7 @@ const AddProduct: React.FC = () => {
               <input
                 value={form.product_name}
                 onChange={(e)=>setForm({ ...form, product_name: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none mr-2"
                 required
               />
             </div>
@@ -147,17 +147,17 @@ const AddProduct: React.FC = () => {
                 step="0.01"
                 value={form.price}
                 onChange={(e)=>setForm({ ...form, price: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none ml-2"
                 required
               />
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">Category</label>
-              <div className="flex gap-2">
+              <div>
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none mb-2"
                   required
                   disabled={loadingCategories}
                 >
@@ -166,30 +166,34 @@ const AddProduct: React.FC = () => {
                     <option key={cat.id} value={cat.name}>{cat.name}</option>
                   ))}
                 </select>
-                {form.category && (
+                <div className="flex gap-2">
+                  {form.category && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const selectedCategory = categories.find(cat => cat.name === form.category);
+                        if (selectedCategory) {
+                          handleDeleteCategory(selectedCategory.id, selectedCategory.name);
+                        }
+                      }}
+                      className="px-3 py-2 text-white rounded-md flex items-center gap-1"
+                      style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+                      title={`Delete ${form.category}`}
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                      Delete
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={() => {
-                      const selectedCategory = categories.find(cat => cat.name === form.category);
-                      if (selectedCategory) {
-                        handleDeleteCategory(selectedCategory.id, selectedCategory.name);
-                      }
-                    }}
-                    className="px-3 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 flex items-center gap-1"
-                    title={`Delete ${form.category}`}
+                    onClick={() => setShowAddCategory(!showAddCategory)}
+                    className="px-6 py-3 text-white rounded-md flex items-center gap-1 ml-2"
+                    style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                   >
-                    <TrashIcon className="h-4 w-4" />
-                    Delete
+                    <PlusIcon className="h-4 w-4" />
+                    Add Category
                   </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setShowAddCategory(!showAddCategory)}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-1"
-                >
-                  <PlusIcon className="h-4 w-4" />
-                  Add
-                </button>
+                </div>
               </div>
               {showAddCategory && (
                 <div className="mt-2 flex gap-2">
@@ -198,13 +202,14 @@ const AddProduct: React.FC = () => {
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
                     placeholder="New category name"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none mr-2"
                     onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
                   />
                   <button
                     type="button"
                     onClick={handleAddCategory}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    className="px-4 py-2 text-white rounded-md ml-2"
+                    style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                   >
                     Add
                   </button>
@@ -214,7 +219,8 @@ const AddProduct: React.FC = () => {
                       setShowAddCategory(false);
                       setNewCategory('');
                     }}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                    className="px-4 py-2 text-white rounded-md ml-2"
+                    style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                   >
                     Cancel
                   </button>
@@ -227,7 +233,7 @@ const AddProduct: React.FC = () => {
                 type="number"
                 value={form.stock_quantity}
                 onChange={(e)=>setForm({ ...form, stock_quantity: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none mr-2 ml-2"
                 required
               />
             </div>
@@ -237,13 +243,25 @@ const AddProduct: React.FC = () => {
             <textarea
               value={form.description}
               onChange={(e)=>setForm({ ...form, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none my-2"
               rows={4}
             />
           </div>
           <div className="flex justify-end gap-3">
-            <button type="button" onClick={()=>navigate(-1)} className="px-4 py-2 rounded-md border border-gray-300">Cancel</button>
-            <button type="submit" disabled={submitting} className="px-4 py-2 rounded-md bg-blue-600 text-black hover:bg-blue-700 disabled:opacity-50">
+            <button 
+              type="button" 
+              onClick={()=>navigate(-1)} 
+              className="px-4 py-2 rounded-md text-white ml-2"
+              style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              disabled={submitting} 
+              className="px-4 py-2 rounded-md text-white ml-2 disabled:opacity-50"
+              style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+            >
               {submitting ? 'Saving...' : 'Save Product'}
             </button>
           </div>

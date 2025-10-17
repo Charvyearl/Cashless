@@ -244,11 +244,15 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
             <button
               type="button"
               onClick={() => setAccountType('student')}
-              className={`flex items-center justify-center p-3 border rounded-lg transition-colors ${
+              className={`flex items-center justify-center p-3 rounded-lg transition-colors mr-2 ${
                 accountType === 'student'
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-gray-300 hover:border-gray-400'
+                  ? 'text-white'
+                  : 'text-white hover:opacity-80'
               }`}
+              style={{
+                backgroundColor: accountType === 'student' ? '#5FA9FF' : '#5FA9FF',
+                border: 'none'
+              }}
             >
               <AcademicCapIcon className="h-5 w-5 mr-2" />
               Student
@@ -256,11 +260,15 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
             <button
               type="button"
               onClick={() => setAccountType('personnel')}
-              className={`flex items-center justify-center p-3 border rounded-lg transition-colors ${
+              className={`flex items-center justify-center p-3 rounded-lg transition-colors ml-2 ${
                 accountType === 'personnel'
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-gray-300 hover:border-gray-400'
+                  ? 'text-white'
+                  : 'text-white hover:opacity-80'
               }`}
+              style={{
+                backgroundColor: accountType === 'personnel' ? '#5FA9FF' : '#5FA9FF',
+                border: 'none'
+              }}
             >
               <UserIcon className="h-5 w-5 mr-2" />
               Personnel
@@ -286,7 +294,11 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                   type="button"
                   onClick={startScan}
                   disabled={scanning}
-                  className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="px-6 py-2 text-sm font-medium text-white rounded-md hover:opacity-80 disabled:opacity-50"
+                  style={{
+                    backgroundColor: '#5FA9FF',
+                    border: 'none'
+                  }}
                 >
                   {scanning ? 'Waiting for tap…' : 'Scan RFID'}
                 </button>
@@ -295,7 +307,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                   name="rfid_card_id"
                   value={formData.rfid_card_id}
                   onChange={handleInputChange}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ml-2"
                   placeholder="(or enter manually)"
                 />
               </div>
@@ -305,7 +317,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                 name="rfid_card_id"
                 value={formData.rfid_card_id}
                 readOnly
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 mt-2"
               />
             )}
             <div className="mt-2 text-xs text-gray-500">
@@ -324,7 +336,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                 value={formData.first_name}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
                 placeholder="First name"
               />
             </div>
@@ -338,7 +350,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                 value={formData.last_name}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ml-2"
                 placeholder="Last name"
               />
             </div>
@@ -353,7 +365,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 my-2"
               placeholder="email@example.com"
             />
           </div>
@@ -370,7 +382,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                 onChange={handleInputChange}
                 required
                 minLength={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
                 placeholder="Min 6 characters"
               />
             </div>
@@ -384,7 +396,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ml-2"
                 placeholder="Confirm password"
               />
             </div>
@@ -402,7 +414,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
               min="0"
               max="10000"
               step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 my-2"
               placeholder="0.00"
             />
           </div>
@@ -412,14 +424,22 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 text-sm font-medium text-white rounded-md hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-3"
+              style={{
+                backgroundColor: '#5FA9FF',
+                border: 'none'
+              }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-               className="px-4 py-2 text-sm font-medium text-black bg-blue-600 border-2 border-black rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_4px_14px_0_rgba(0,0,0,0.3)] hover:shadow-[0_6px_20px_0_rgba(0,0,0,0.4)] transition-all duration-200"
+              className="px-4 py-2 text-sm font-medium text-white rounded-md hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ml-2"
+              style={{
+                backgroundColor: '#5FA9FF',
+                border: 'none'
+              }}
             >
               {loading ? 'Creating...' : `Create ${accountType === 'student' ? 'Student' : 'Personnel'}`}
             </button>

@@ -59,12 +59,27 @@ const CanteenOrderDetails: React.FC = () => {
           )}
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => navigate('/canteen')} className="px-3 py-2 border border-gray-300 rounded-md">Back</button>
-          <button onClick={markReady} disabled={saving || loading} className="px-3 py-2 bg-gray-900 text-white rounded-md disabled:opacity-50">
+          <button 
+            onClick={() => navigate('/canteen')} 
+            className="px-6 py-2 text-white rounded-md mr-2"
+            style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+          >
+            Back
+          </button>
+          <button 
+            onClick={markReady} 
+            disabled={saving || loading} 
+            className="px-6 py-2 text-white rounded-md disabled:opacity-50 ml-2"
+            style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+          >
             {saving ? 'Saving…' : 'Mark Ready'}
           </button>
           {details?.transaction?.status === 'ready' && (
-            <button onClick={proceedToPayment} className="px-3 py-2 bg-green-600 text-white rounded-md disabled:opacity-50">
+            <button 
+              onClick={proceedToPayment} 
+              className="px-6 py-2 text-white rounded-md disabled:opacity-50 ml-2"
+              style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+            >
               Proceed to Payment
             </button>
           )}

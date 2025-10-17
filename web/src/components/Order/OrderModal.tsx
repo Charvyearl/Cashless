@@ -218,7 +218,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
                         <h4 className="font-medium text-gray-900 text-sm">{item.product_name}</h4>
                         <button
                           onClick={() => updateQuantity(item.product_id, 0)}
-                          className="text-white text-xs px-2 py-1 rounded border-0"
+                          className="text-white text-xs px-4 py-2 rounded border-0"
                           style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                         >
                           Remove
@@ -228,18 +228,18 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => updateQuantity(item.product_id, item.quantity - 1)}
-                            className="w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center hover:bg-red-200 border-0"
+                            className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center hover:bg-red-200 border-0 mr-2 p-2"
                             style={{ border: 'none' }}
                           >
-                            <MinusIcon className="w-3 h-3" />
+                            <MinusIcon className="w-4 h-4" />
                           </button>
                           <span className="font-medium min-w-[1.5rem] text-center">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.product_id, item.quantity + 1)}
-                            className="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-200 border-0"
+                            className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-200 border-0 p-2"
                             style={{ border: 'none' }}
                           >
-                            <PlusIcon className="w-3 h-3" />
+                            <PlusIcon className="w-4 h-4" />
                           </button>
                         </div>
                         <div className="text-right">
@@ -255,16 +255,16 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
 
             {/* Total and Checkout */}
             {orderItems.length > 0 && (
-              <div className="mt-6 pt-4 border-t">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-lg font-semibold">Total:</span>
-                  <span className="text-xl font-bold text-green-600">
+              <div className="mt-8 pt-6 border-t px-6 py-4">
+                <div className="flex justify-between items-center mb-6">
+                  <span className="text-xl font-semibold">Total:</span>
+                  <span className="text-2xl font-bold text-green-600">
                     {currency(getTotalAmount())}
                   </span>
                 </div>
                 <button
                   onClick={handleProceedToPayment}
-                  className="w-full text-white py-3 rounded-md font-medium border-0"
+                  className="w-full text-white py-4 px-6 rounded-md font-medium border-0 text-lg"
                   style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                 >
                   Proceed to Payment
