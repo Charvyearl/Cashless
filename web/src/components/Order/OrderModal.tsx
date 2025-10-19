@@ -55,13 +55,20 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
   };
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.product_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All Categories' || product.category === selectedCategory;
+    const searchLower = searchTerm.toLowerCase().trim();
+    const productName = product.product_name || '';
+    const productDescription = product.description || '';
+    const productCategory = product.category || '';
+    
+    const matchesSearch = searchLower === '' || 
+                         productName.toLowerCase().includes(searchLower) ||
+                         productDescription.toLowerCase().includes(searchLower) ||
+                         productCategory.toLowerCase().includes(searchLower);
+    const matchesCategory = selectedCategory === 'All Categories' || productCategory === selectedCategory;
     return matchesSearch && matchesCategory && product.is_available && product.stock_quantity > 0;
   });
 
-  const categories = ['All Categories', ...Array.from(new Set(products.map(p => p.category)))];
+  const categories = ['All Categories', ...Array.from(new Set(products.map(p => p.category).filter(cat => cat != null)))];
 
   const addToOrder = (product: Product) => {
     const existingItem = orderItems.find(item => item.product_id === product.product_id);
@@ -145,24 +152,41 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
           <div className="flex-1 p-6 overflow-y-auto">
             <div className="mb-4 space-y-4">
               {/* Search */}
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search products by name, description, or category..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
 
               {/* Category Filter */}
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 {categories.map(category => (
                   <option key={category} value={category}>{category}</option>
                 ))}
               </select>
+              
+              {/* Search Results Count */}
+              {searchTerm && (
+                <div className="text-sm text-gray-600">
+                  Found {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} matching "{searchTerm}"
+                </div>
+              )}
             </div>
 
             {loading ? (

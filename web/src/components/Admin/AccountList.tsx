@@ -34,7 +34,9 @@ const AccountList: React.FC<AccountListProps> = ({
         ? await adminAPI.getStudents({ limit: 100 })
         : await adminAPI.getPersonnel({ limit: 100 });
       
-      setAccounts(response.data.data);
+      const accounts = response.data.data || [];
+      console.log(`Number of ${accountType}s loaded:`, accounts.length);
+      setAccounts(accounts);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch accounts');
     } finally {
@@ -106,10 +108,12 @@ const AccountList: React.FC<AccountListProps> = ({
             No {accountType}s found
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
-            {filteredAccounts.map((account) => (
-              <div key={accountType === 'student' ? (account as Student).user_id : (account as Personnel).personnel_id} 
-                   className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+          <div className="overflow-hidden">
+            <div className="overflow-y-auto border border-gray-300 rounded" style={{ height: '200px', overflowY: 'scroll' }}>
+              <div className="divide-y divide-gray-200">
+                {filteredAccounts.map((account) => (
+                  <div key={accountType === 'student' ? (account as Student).user_id : (account as Personnel).personnel_id} 
+                       className="px-6 py-4 flex items-center justify-between hover:bg-gray-50">
                 <div className="flex items-center space-x-4">
                   <div className={`h-12 w-12 rounded-full flex items-center justify-center text-white font-semibold ${
                     account.is_active ? 'bg-green-500' : 'bg-red-500'
@@ -163,8 +167,10 @@ const AccountList: React.FC<AccountListProps> = ({
                     </button>
                   </div>
                 </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         )}
       </div>

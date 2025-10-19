@@ -45,6 +45,16 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
   const [transactionId, setTransactionId] = useState<number | null>(null);
   const [step, setStep] = useState<'scan' | 'confirm' | 'processing' | 'success' | 'error'>('scan');
   const [isScanning, setIsScanning] = useState(false);
+  const [scanInterval, setScanInterval] = useState<NodeJS.Timeout | null>(null);
+
+  const stopScanning = () => {
+    if (scanInterval) {
+      clearInterval(scanInterval);
+      setScanInterval(null);
+    }
+    setIsScanning(false);
+    console.log('🛑 RFID scan stopped by user');
+  };
 
   const handleScanRfid = () => {
     setIsScanning(true);
@@ -68,7 +78,7 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
               const scannedRfid = data.data.rfid_card_id;
               console.log('📱 RFID Scanned from Arduino:', scannedRfid);
               setRfidInput(scannedRfid);
-              setIsScanning(false);
+              stopScanning();
               
               // Auto-verify the scanned RFID
               setTimeout(() => {
@@ -89,15 +99,11 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
       const found = await pollForRFID();
       if (found) {
         clearInterval(pollInterval);
+        setScanInterval(null);
       }
     }, 500);
     
-    // Stop scanning after 10 seconds
-    setTimeout(() => {
-      clearInterval(pollInterval);
-      console.log('⏰ RFID scan timeout');
-      setIsScanning(false);
-    }, 10000);
+    setScanInterval(pollInterval);
   };
 
   useEffect(() => {
@@ -114,9 +120,17 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
         handleScanRfid();
       }, 500);
     } else {
-      setIsScanning(false);
+      // Clean up scanning when modal closes
+      stopScanning();
     }
   }, [isOpen, existingTransactionId]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopScanning();
+    };
+  }, []);
 
   const verifyRFID = async (rfid: string) => {
     if (!rfid.trim()) {
@@ -288,9 +302,10 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
           <button
             onClick={onClose}
             disabled={isProcessing}
-            className="p-2 hover:bg-gray-100 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#FF6B6B', border: 'none' }}
           >
-            <XMarkIcon className="w-6 h-6" />
+            <XMarkIcon className="w-6 h-6 text-white" />
           </button>
         </div>
 
@@ -344,25 +359,33 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
                 )}
 
                 <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={handleScanRfid}
-                    disabled={isVerifying || isScanning}
-                    className={`flex-1 py-3 rounded-md font-medium flex items-center justify-center gap-2 disabled:cursor-not-allowed border-0 ${
-                      isScanning 
-                        ? 'text-white animate-pulse' 
-                        : 'text-white disabled:bg-gray-300'
-                    }`}
-                    style={isScanning ? { backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' } : { backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
-                  >
-                    <CreditCardIcon className="w-5 h-5" />
-                    {isScanning ? 'Scanning...' : 'Scan RFID'}
-                  </button>
+                  {!isScanning ? (
+                    <button
+                      type="button"
+                      onClick={handleScanRfid}
+                      disabled={isVerifying}
+                      className="flex-1 py-4 px-6 rounded-md font-medium flex items-center justify-center gap-2 disabled:cursor-not-allowed border-0 text-white disabled:bg-gray-300"
+                      style={{ backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
+                    >
+                      <CreditCardIcon className="w-5 h-5" />
+                      Scan RFID
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={stopScanning}
+                      className="flex-1 py-4 px-6 rounded-md font-medium flex items-center justify-center gap-2 border-0 text-white animate-pulse"
+                      style={{ backgroundColor: '#FF6B6B', border: 'none', margin: '0 8px' }}
+                    >
+                      <XMarkIcon className="w-5 h-5" />
+                      Stop Scanning
+                    </button>
+                  )}
                   
                   <button
                     type="submit"
                     disabled={isVerifying || !rfidInput.trim() || isScanning}
-                    className="flex-1 text-white py-3 rounded-md disabled:bg-gray-300 disabled:cursor-not-allowed font-medium border-0"
+                    className="flex-1 text-white py-4 px-6 rounded-md disabled:bg-gray-300 disabled:cursor-not-allowed font-medium border-0"
                     style={{ backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
                   >
                     {isVerifying ? 'Verifying...' : 'Verify Customer'}
@@ -414,7 +437,7 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
               <div className="flex gap-3">
                 <button
                   onClick={handleRetry}
-                  className="flex-1 text-white py-3 rounded-md font-medium border-0"
+                  className="flex-1 text-white py-4 px-6 rounded-md font-medium border-0"
                   style={{ backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
                 >
                   Back
@@ -422,7 +445,7 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
                 <button
                   onClick={handleConfirmPayment}
                   disabled={customer.balance < orderData.total_amount || isProcessing}
-                  className="flex-1 text-white py-3 rounded-md disabled:bg-red-500 disabled:cursor-not-allowed font-medium border-0"
+                  className="flex-1 text-white py-4 px-6 rounded-md disabled:bg-red-500 disabled:cursor-not-allowed font-medium border-0"
                   style={{ backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
                 >
                   {isProcessing ? 'Processing...' : customer.balance < orderData.total_amount ? 'Insufficient Balance' : 'Confirm Payment'}

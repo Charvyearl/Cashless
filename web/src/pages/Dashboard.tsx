@@ -321,31 +321,32 @@ const Dashboard: React.FC = () => {
           <div className="p-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">Transaction History</h2>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 text-left">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-gray-600">Transaction ID</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Customer</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Amount</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Date</th>
-                  <th className="px-4 py-3 font-medium text-gray-600 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {loadingTransactions && (
+          <div className="overflow-hidden">
+            <div className="overflow-x-auto border border-gray-300 rounded" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50 text-left sticky top-0 z-10">
                   <tr>
+                    <th className="px-4 py-3 font-medium text-gray-600">Transaction ID</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Customer</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Amount</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Status</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Date</th>
+                    <th className="px-4 py-3 font-medium text-gray-600 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                {loadingTransactions && (
+                  <tr className="h-16">
                     <td className="px-4 py-6 text-center text-gray-500" colSpan={6}>Loading transactions…</td>
                   </tr>
                 )}
                 {!loadingTransactions && transactions.length === 0 && (
-                  <tr>
+                  <tr className="h-16">
                     <td className="px-4 py-6 text-center text-gray-500" colSpan={6}>No transactions found</td>
                   </tr>
                 )}
                 {!loadingTransactions && transactions.map((t: any) => (
-                  <tr key={t.transaction_id}>
+                  <tr key={t.transaction_id} className="h-16">
                     <td className="px-4 py-3">
                       <div className="text-gray-900 font-medium">#{t.transaction_id}</div>
                     </td>
@@ -373,7 +374,8 @@ const Dashboard: React.FC = () => {
                       <div className="flex items-center gap-2 justify-end">
                         <button
                           onClick={() => navigate(`/admin/transactions/${t.transaction_id}`)}
-                          className="px-2 py-1 text-xs rounded border border-gray-300 hover:bg-gray-50"
+                          className="px-4 py-2 text-xs rounded text-white hover:opacity-90 m-3 border-0"
+                          style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                         >
                           View
                         </button>
@@ -381,8 +383,9 @@ const Dashboard: React.FC = () => {
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

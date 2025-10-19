@@ -247,10 +247,10 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
               className={`flex items-center justify-center p-3 rounded-lg transition-colors mr-2 ${
                 accountType === 'student'
                   ? 'text-white'
-                  : 'text-white hover:opacity-80'
+                  : 'text-gray-700 hover:opacity-80'
               }`}
               style={{
-                backgroundColor: accountType === 'student' ? '#5FA9FF' : '#5FA9FF',
+                backgroundColor: accountType === 'student' ? '#5FA9FF' : '#F3F4F6',
                 border: 'none'
               }}
             >
@@ -263,10 +263,10 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
               className={`flex items-center justify-center p-3 rounded-lg transition-colors ml-2 ${
                 accountType === 'personnel'
                   ? 'text-white'
-                  : 'text-white hover:opacity-80'
+                  : 'text-gray-700 hover:opacity-80'
               }`}
               style={{
-                backgroundColor: accountType === 'personnel' ? '#5FA9FF' : '#5FA9FF',
+                backgroundColor: accountType === 'personnel' ? '#5FA9FF' : '#F3F4F6',
                 border: 'none'
               }}
             >

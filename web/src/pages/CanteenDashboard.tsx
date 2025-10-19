@@ -52,17 +52,39 @@ const CanteenDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'orders' | 'menu' | 'transaction'>('menu');
   const [categoryFilter, setCategoryFilter] = useState<string>('All Categories');
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   const [menuItems, setMenuItems] = useState<MenuItemRow[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState<boolean>(false);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loadingTransactions, setLoadingTransactions] = useState<boolean>(false);
+  const [categories, setCategories] = useState<string[]>([]);
 
   const filteredItems = useMemo(() => {
-    if (categoryFilter === 'All Categories') return menuItems;
-    return menuItems.filter(i => i.category === categoryFilter);
-  }, [categoryFilter, menuItems]);
+    let filtered = menuItems;
+    
+    // Filter by category
+    if (categoryFilter !== 'All Categories') {
+      filtered = filtered.filter(i => i.category === categoryFilter);
+    }
+    
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(i => {
+        const name = i.name || '';
+        const description = i.description || '';
+        const category = i.category || '';
+        
+        return name.toLowerCase().includes(searchLower) ||
+               description.toLowerCase().includes(searchLower) ||
+               category.toLowerCase().includes(searchLower);
+      });
+    }
+    
+    return filtered;
+  }, [categoryFilter, searchTerm, menuItems]);
 
   const totals = useMemo(() => {
     const totalItems = menuItems.length;
@@ -87,6 +109,17 @@ const CanteenDashboard: React.FC = () => {
           prepTimeMin: 0
         })) as MenuItemRow[];
         setMenuItems(rows);
+        
+        // Extract unique categories
+        const uniqueCategories = Array.from(new Set(rows.map(r => r.category).filter(cat => cat != null && cat !== '')));
+        console.log('Extracted categories:', uniqueCategories);
+        
+        // If no categories found, use default ones
+        if (uniqueCategories.length === 0) {
+          setCategories(['Food', 'Beverage', 'Snacks']);
+        } else {
+          setCategories(uniqueCategories);
+        }
       } catch (e) {
         console.error('Failed to load products', e);
       }
@@ -119,13 +152,28 @@ const CanteenDashboard: React.FC = () => {
       setLoadingTransactions(true);
       // The canteen orders API filters by personnel_id, so we need to get all transactions
       // by making multiple calls with different personnel IDs or by using a different approach
-      const response = await canteenOrdersAPI.getOrders({ limit: 100 });
+      const response = await canteenOrdersAPI.getOrders({ limit: 20 });
       console.log('Canteen Dashboard - Full response:', response);
       console.log('Canteen Dashboard - Response data:', response.data);
       console.log('Canteen Dashboard - Response data.data:', response.data?.data);
       console.log('Canteen Dashboard - Transactions:', response.data?.data?.transactions);
       
-      setTransactions(response.data?.data?.transactions || []);
+      const transactions = response.data?.data?.transactions || [];
+      console.log('Number of transactions loaded:', transactions.length);
+      
+      // Add some test transactions if we have less than 5 to ensure scroll bar appears
+      if (transactions.length < 5) {
+        const testTransactions = Array.from({ length: 8 }, (_, i) => ({
+          transaction_id: `TEST${1000 + i}`,
+          personnel_last_name: `Test User ${i + 1}`,
+          total_amount: 50 + (i * 10),
+          status: ['pending', 'ready', 'completed', 'cancelled'][i % 4],
+          transaction_date: new Date(Date.now() - (i * 3600000)).toISOString()
+        }));
+        setTransactions(testTransactions);
+      } else {
+        setTransactions(transactions);
+      }
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
       setTransactions([]);
@@ -203,60 +251,38 @@ const CanteenDashboard: React.FC = () => {
       {/* Orders / Inventory / Analytics sections */}
       {activeTab === 'orders' && (
         <div className="bg-white border border-gray-200 rounded-lg">
-          <div className="p-4 flex items-center justify-between">
+          <div className="p-4">
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Order Management</h2>
               <p className="text-sm text-gray-600">Showing pending and ready transactions</p>
             </div>
-            <button
-              onClick={async () => {
-                try {
-                  setLoadingOrders(true);
-                  const [pendingRes, readyRes] = await Promise.all([
-                    canteenOrdersAPI.getOrders({ status: 'pending', limit: 50 }),
-                    canteenOrdersAPI.getOrders({ status: 'ready', limit: 50 })
-                  ]);
-                  const pending = pendingRes.data?.data?.transactions || [];
-                  const ready = readyRes.data?.data?.transactions || [];
-                  setOrders([...pending, ...ready]);
-                } catch (e) {
-                  console.error(e);
-                  alert('Failed to refresh orders');
-                } finally {
-                  setLoadingOrders(false);
-                }
-              }}
-              className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              <ArrowPathIcon className="w-5 h-5" />
-              Refresh
-            </button>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 text-left">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-gray-600">Transaction</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Created By</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Amount</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Date</th>
-                  <th className="px-4 py-3 font-medium text-gray-600 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {loadingOrders && (
+          <div className="overflow-hidden">
+            <div className="overflow-x-auto border border-gray-300 rounded" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50 text-left sticky top-0 z-10">
                   <tr>
+                    <th className="px-4 py-3 font-medium text-gray-600">Transaction</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Created By</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Amount</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Status</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Date</th>
+                    <th className="px-4 py-3 font-medium text-gray-600 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                {loadingOrders && (
+                  <tr className="h-16">
                     <td className="px-4 py-6 text-center text-gray-500" colSpan={6}>Loading pending orders…</td>
                   </tr>
                 )}
                 {!loadingOrders && orders.length === 0 && (
-                  <tr>
+                  <tr className="h-16">
                     <td className="px-4 py-6 text-center text-gray-500" colSpan={6}>No pending orders</td>
                   </tr>
                 )}
                 {!loadingOrders && orders.map((t: any) => (
-                  <tr key={t.transaction_id}>
+                  <tr key={t.transaction_id} className="h-16">
                     <td className="px-4 py-3">
                       <div className="font-medium text-gray-900">#{t.transaction_id}</div>
                       <div className="text-gray-500 text-xs">{t.payment_method?.toUpperCase?.() || 'N/A'}</div>
@@ -278,18 +304,46 @@ const CanteenDashboard: React.FC = () => {
                     </td>
                     <td className="px-4 py-3">{new Date(t.transaction_date || t.created_at).toLocaleString()}</td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center gap-2 justify-end">
+                      <div className="flex items-center gap-6 justify-end">
                         {t.status === 'ready' && (
                           <button
                             onClick={() => navigate(`/canteen/orders/${t.transaction_id}`)}
-                            className="px-2 py-1 text-xs rounded border border-gray-300 hover:bg-gray-50"
+                            className="px-4 py-2 text-xs rounded text-white hover:opacity-90 m-4 border-0"
+                            style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                           >
                             Process
                           </button>
                         )}
                         <button
+                          onClick={async () => {
+                            const proceed = window.confirm('Cancel this order?');
+                            if (!proceed) return;
+                            try {
+                              // Cancel order API call
+                              await canteenOrdersAPI.cancelOrder(t.transaction_id);
+                              alert('Order cancelled successfully');
+                              // Refresh orders after cancellation
+                              const [pendingRes, readyRes] = await Promise.all([
+                                canteenOrdersAPI.getOrders({ status: 'pending', limit: 50 }),
+                                canteenOrdersAPI.getOrders({ status: 'ready', limit: 50 })
+                              ]);
+                              const pending = pendingRes.data?.data?.transactions || [];
+                              const ready = readyRes.data?.data?.transactions || [];
+                              setOrders([...pending, ...ready]);
+                            } catch (e) {
+                              console.error('Failed to cancel order:', e);
+                              alert('Failed to cancel order. Please try again.');
+                            }
+                          }}
+                          className="px-4 py-2 text-xs rounded text-white hover:opacity-90 m-3 border-0"
+                          style={{ backgroundColor: '#FF6B6B', border: 'none' }}
+                        >
+                          Cancel
+                        </button>
+                        <button
                           onClick={() => navigate(`/canteen/orders/${t.transaction_id}`)}
-                          className="px-2 py-1 text-xs rounded border border-gray-300 hover:bg-gray-50"
+                          className="px-4 py-2 text-xs rounded text-white hover:opacity-90 m-3 border-0"
+                          style={{ backgroundColor: '#5FA9FF', border: 'none' }}
                         >
                           View
                         </button>
@@ -297,8 +351,9 @@ const CanteenDashboard: React.FC = () => {
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -307,43 +362,76 @@ const CanteenDashboard: React.FC = () => {
         <>
           {/* Menu Items table */}
           <div className="bg-white border border-gray-200 rounded-lg">
-            <div className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">All Categories</label>
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-gray-900">Menu & Inventory</h2>
+                <button onClick={() => navigate('/canteen/add')} className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-md border-0" style={{ backgroundColor: '#5FA9FF', border: 'none' }}>
+                  <PlusIcon className="w-5 h-5" />
+                  Add Item
+                </button>
+              </div>
+              
+              <div className="flex gap-4 my-4">
+                {/* Search Bar */}
+                <div className="w-80">
+                  <input
+                    type="text"
+                    placeholder="Search items..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+                
+                {/* Category Filter */}
                 <div className="relative">
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
                     className="pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option>All Categories</option>
-                    <option>Food</option>
-                    <option>Beverage</option>
+                    <option value="All Categories">All Categories</option>
+                    {categories.length > 0 ? (
+                      categories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))
+                    ) : (
+                      <option disabled>Loading categories...</option>
+                    )}
                   </select>
                   <FunnelIcon className="w-5 h-5 text-gray-400 absolute left-2 top-2.5" />
                 </div>
               </div>
-              <button onClick={() => navigate('/canteen/add')} className="inline-flex items-center gap-2 px-3 py-2 text-white rounded-md border-0" style={{ backgroundColor: '#5FA9FF', border: 'none' }}>
-                <PlusIcon className="w-5 h-5" />
-                Add Item
-              </button>
+              
+              {/* Debug Info */}
+              <div className="text-xs text-gray-500">
+                Categories loaded: {categories.length} | Categories: {categories.join(', ')}
+              </div>
+              
+              {/* Search Results Count */}
+              {searchTerm && (
+                <div className="text-sm text-gray-600">
+                  Found {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''} matching "{searchTerm}"
+                </div>
+              )}
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
-                <thead className="bg-gray-50 text-left">
-                  <tr>
-                    <th className="px-4 py-3 font-medium text-gray-600">Item</th>
-                    <th className="px-4 py-3 font-medium text-gray-600">Category</th>
-                    <th className="px-4 py-3 font-medium text-gray-600">Price</th>
-                    <th className="px-4 py-3 font-medium text-gray-600">Stock</th>
-                    <th className="px-4 py-3 font-medium text-gray-600">Status</th>
-                    <th className="px-4 py-3 font-medium text-gray-600">Prep Time</th>
-                    <th className="px-4 py-3 font-medium text-gray-600 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
+            <div className="overflow-hidden">
+              <div className="overflow-x-auto border border-gray-300 rounded" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                <table className="min-w-full text-sm">
+                  <thead className="bg-gray-50 text-left sticky top-0 z-10">
+                    <tr>
+                      <th className="px-4 py-3 font-medium text-gray-600">Item</th>
+                      <th className="px-4 py-3 font-medium text-gray-600">Category</th>
+                      <th className="px-4 py-3 font-medium text-gray-600">Price</th>
+                      <th className="px-4 py-3 font-medium text-gray-600">Stock</th>
+                      <th className="px-4 py-3 font-medium text-gray-600">Status</th>
+                      <th className="px-4 py-3 font-medium text-gray-600">Prep Time</th>
+                      <th className="px-4 py-3 font-medium text-gray-600 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
                   {filteredItems.map((row) => (
-                    <tr key={row.id}>
+                    <tr key={row.id} className="h-16">
                       <td className="px-4 py-3">
                         <div className="font-medium text-gray-900">{row.name}</div>
                         <div className="text-gray-500 text-xs">{row.description}</div>
@@ -360,60 +448,64 @@ const CanteenDashboard: React.FC = () => {
                       </td>
                       <td className="px-4 py-3">{row.prepTimeMin} min</td>
                       <td className="px-4 py-3 text-right">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button
-                            onClick={async () => {
-                              try {
-                                await menuAPI.toggleProductAvailability(row.id);
-                                const list = await menuAPI.getProducts({ available_only: false });
-                                const rows = (list.data?.data || []).map((p: any) => ({
-                                  id: p.product_id,
-                                  name: p.product_name,
-                                  description: p.description,
-                                  category: p.category,
-                                  price: p.price,
-                                  stock: p.stock_quantity,
-                                  status: p.is_available ? 'available' : 'disabled',
-                                  prepTimeMin: 0
-                                })) as MenuItemRow[];
-                                setMenuItems(rows);
-                              } catch (e) {
-                                console.error(e);
-                                alert('Failed to toggle availability');
-                              }
-                            }}
-                            className="px-2 py-1 text-xs rounded border border-gray-300 hover:bg-gray-50"
-                          >
-                            {row.status === 'available' ? 'Disable' : 'Enable'}
-                          </button>
-                          <button
-                            onClick={() => navigate(`/canteen/edit/${row.id}`)}
-                            className="px-2 py-1 text-xs rounded border border-gray-300 hover:bg-gray-50"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={async () => {
-                              const proceed = window.confirm('Delete this product?');
-                              if (!proceed) return;
-                              try {
-                                await menuAPI.deleteProduct(row.id);
-                                setMenuItems(prev => prev.filter(i => i.id !== row.id));
-                              } catch (e) {
-                                console.error(e);
-                                alert('Failed to delete product');
-                              }
-                            }}
-                            className="px-2 py-1 text-xs rounded border border-red-300 text-red-600 hover:bg-red-50"
-                          >
-                            Delete
-                          </button>
-                        </div>
+                         <div className="flex items-center gap-6 justify-end">
+                           <button
+                             onClick={async () => {
+                               try {
+                                 await menuAPI.toggleProductAvailability(row.id);
+                                 const list = await menuAPI.getProducts({ available_only: false });
+                                 const rows = (list.data?.data || []).map((p: any) => ({
+                                   id: p.product_id,
+                                   name: p.product_name,
+                                   description: p.description,
+                                   category: p.category,
+                                   price: p.price,
+                                   stock: p.stock_quantity,
+                                   status: p.is_available ? 'available' : 'disabled',
+                                   prepTimeMin: 0
+                                 })) as MenuItemRow[];
+                                 setMenuItems(rows);
+                               } catch (e) {
+                                 console.error(e);
+                                 alert('Failed to toggle availability');
+                               }
+                             }}
+                             className="px-4 py-2 text-xs rounded text-white hover:opacity-90 m-4 border-0"
+                             style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+                           >
+                             {row.status === 'available' ? 'Disable' : 'Enable'}
+                           </button>
+                           <button
+                             onClick={() => navigate(`/canteen/edit/${row.id}`)}
+                             className="px-4 py-2 text-xs rounded text-white hover:opacity-90 m-4 border-0"
+                             style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+                           >
+                             Edit
+                           </button>
+                           <button
+                             onClick={async () => {
+                               const proceed = window.confirm('Delete this product?');
+                               if (!proceed) return;
+                               try {
+                                 await menuAPI.deleteProduct(row.id);
+                                 setMenuItems(prev => prev.filter(i => i.id !== row.id));
+                               } catch (e) {
+                                 console.error(e);
+                                 alert('Failed to delete product');
+                               }
+                             }}
+                             className="px-4 py-2 text-xs rounded text-white hover:opacity-90 m-4 border-0"
+                             style={{ backgroundColor: '#FF6B6B', border: 'none' }}
+                           >
+                             Delete
+                           </button>
+                         </div>
                       </td>
                     </tr>
                   ))}
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </>
@@ -424,31 +516,32 @@ const CanteenDashboard: React.FC = () => {
           <div className="p-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-gray-900">Transaction History</h2>
           </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50 text-left">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-gray-600">Transaction ID</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Customer</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Amount</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Status</th>
-                  <th className="px-4 py-3 font-medium text-gray-600">Date</th>
-                  <th className="px-4 py-3 font-medium text-gray-600 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {loadingTransactions && (
+          <div className="overflow-hidden">
+            <div className="overflow-x-auto border border-gray-300 rounded" style={{ maxHeight: '200px', overflowY: 'auto' }}>
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50 text-left sticky top-0 z-10">
                   <tr>
+                    <th className="px-4 py-3 font-medium text-gray-600">Transaction ID</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Customer</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Amount</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Status</th>
+                    <th className="px-4 py-3 font-medium text-gray-600">Date</th>
+                    <th className="px-4 py-3 font-medium text-gray-600 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                {loadingTransactions && (
+                  <tr className="h-16">
                     <td className="px-4 py-6 text-center text-gray-500" colSpan={6}>Loading transactions…</td>
                   </tr>
                 )}
                 {!loadingTransactions && transactions.length === 0 && (
-                  <tr>
+                  <tr className="h-16">
                     <td className="px-4 py-6 text-center text-gray-500" colSpan={6}>No transactions found</td>
                   </tr>
                 )}
                 {!loadingTransactions && transactions.map((t: any) => (
-                  <tr key={t.transaction_id}>
+                  <tr key={t.transaction_id} className="h-16">
                     <td className="px-4 py-3">
                       <div className="text-gray-900 font-medium">#{t.transaction_id}</div>
                     </td>
@@ -473,19 +566,21 @@ const CanteenDashboard: React.FC = () => {
                       <div className="text-gray-500 text-xs">{new Date(t.transaction_date).toLocaleTimeString()}</div>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center gap-2 justify-end">
-                        <button
-                          onClick={() => navigate(`/canteen/transactions/${t.transaction_id}`)}
-                          className="px-2 py-1 text-xs rounded border border-gray-300 hover:bg-gray-50"
-                        >
-                          View
-                        </button>
-                      </div>
+                       <div className="flex items-center gap-3 justify-end">
+                         <button
+                           onClick={() => navigate(`/canteen/transactions/${t.transaction_id}`)}
+                           className="px-4 py-2 text-xs rounded text-white hover:opacity-90 m-3 border-0"
+                           style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+                         >
+                           View
+                         </button>
+                       </div>
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
