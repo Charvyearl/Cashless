@@ -218,7 +218,7 @@ export default function App() {
               styles.roleCardSubtitle,
               selectedRole === 'student' && styles.roleCardSubtitleActive
             ]}>
-              Browse menu and make payments
+              Your Personal Dashboard
             </Text>
           </View>
         </TouchableOpacity>
@@ -249,7 +249,7 @@ export default function App() {
               styles.roleCardSubtitle,
               selectedRole === 'personnel' && styles.roleCardSubtitleActive
             ]}>
-              Manage orders and reservations
+              Order and Reserve Food
             </Text>
           </View>
         </TouchableOpacity>
@@ -428,19 +428,14 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   logoWrapper: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: 'transparent',
     borderRadius: 20,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
   },
   logoImage: {
-    width: 120,
-    height: 40,
+    width: 250,
+    height: 80,
   },
   welcomeText: {
     fontSize: 18,
