@@ -23,12 +23,37 @@ const currency = (amount: number) =>
 const StatCard: React.FC<{ title: string; value: string | number; sub?: string; color?: string; icon?: React.ReactNode }>
   = ({ title, value, sub, color = 'text-gray-800', icon }) => {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <div className="flex items-start justify-between">
+    <div style={{
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      border: '1px solid #E5E7EB',
+      padding: '16px',
+      margin: '8px'
+    }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between'
+      }}>
         <div>
-          <p className="text-sm text-gray-500">{title}</p>
-          <p className={`mt-2 text-2xl font-semibold ${color}`}>{value}</p>
-          {sub && <p className="mt-1 text-xs text-gray-400">{sub}</p>}
+          <p style={{
+            fontSize: '14px',
+            color: '#6B7280',
+            margin: 0
+          }}>{title}</p>
+          <p style={{
+            marginTop: '8px',
+            fontSize: '24px',
+            fontWeight: '600',
+            color: color === 'text-gray-800' ? '#1F2937' : color,
+            margin: '8px 0 0 0'
+          }}>{value}</p>
+          {sub && <p style={{
+            marginTop: '4px',
+            fontSize: '12px',
+            color: '#9CA3AF',
+            margin: '4px 0 0 0'
+          }}>{sub}</p>}
         </div>
         {icon}
       </div>
@@ -150,8 +175,6 @@ const CanteenDashboard: React.FC = () => {
   const fetchTransactions = async () => {
     try {
       setLoadingTransactions(true);
-      // The canteen orders API filters by personnel_id, so we need to get all transactions
-      // by making multiple calls with different personnel IDs or by using a different approach
       const response = await canteenOrdersAPI.getOrders({ limit: 20 });
       console.log('Canteen Dashboard - Full response:', response);
       console.log('Canteen Dashboard - Response data:', response.data);
@@ -161,19 +184,7 @@ const CanteenDashboard: React.FC = () => {
       const transactions = response.data?.data?.transactions || [];
       console.log('Number of transactions loaded:', transactions.length);
       
-      // Add some test transactions if we have less than 5 to ensure scroll bar appears
-      if (transactions.length < 5) {
-        const testTransactions = Array.from({ length: 8 }, (_, i) => ({
-          transaction_id: `TEST${1000 + i}`,
-          personnel_last_name: `Test User ${i + 1}`,
-          total_amount: 50 + (i * 10),
-          status: ['pending', 'ready', 'completed', 'cancelled'][i % 4],
-          transaction_date: new Date(Date.now() - (i * 3600000)).toISOString()
-        }));
-        setTransactions(testTransactions);
-      } else {
-        setTransactions(transactions);
-      }
+      setTransactions(transactions);
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
       setTransactions([]);
@@ -210,7 +221,7 @@ const CanteenDashboard: React.FC = () => {
       </div>
 
       {/* Top metric cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <StatCard title="Pending Orders" value={orders.filter(o => o.status === 'pending').length} sub="Awaiting preparation" />
         <StatCard title="Total Items" value={totals.totalItems} />
         <StatCard title="Available Items" value={totals.available} />
@@ -547,10 +558,10 @@ const CanteenDashboard: React.FC = () => {
                     </td>
                     <td className="px-4 py-3">
                       <div className="text-gray-900">
-                        {(t.personnel_last_name) ? `${t.personnel_last_name}` :
-                         (t.user_last_name) ? `${t.user_last_name}` : '—'}
+                        {(t.user_first_name && t.user_last_name) ? `${t.user_first_name} ${t.user_last_name}` :
+                         (t.personnel_first_name && t.personnel_last_name) ? `${t.personnel_first_name} ${t.personnel_last_name}` : '—'}
                       </div>
-                      <div className="text-gray-500 text-xs">{t.personnel_rfid || t.user_rfid || ''}</div>
+                      <div className="text-gray-500 text-xs">{t.user_rfid || t.personnel_rfid || ''}</div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="text-gray-900 font-medium">{currency(t.total_amount)}</div>

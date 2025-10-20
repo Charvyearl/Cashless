@@ -339,21 +339,30 @@ router.post('/:transactionId/cancel', verifyToken, async (req, res) => {
       });
     }
 
-    if (transaction.status !== 'pending') {
+    if (!['pending', 'ready'].includes(transaction.status)) {
       return res.status(400).json({
         success: false,
-        message: 'Only pending transactions can be cancelled'
+        message: 'Only pending or ready transactions can be cancelled'
       });
     }
 
     await transaction.updateStatus('cancelled');
+
+    // Restore stock quantities for cancelled orders
+    const items = await transaction.getTransactionItems();
+    for (const item of items) {
+      await pool.execute(
+        'UPDATE PRODUCT SET stock_quantity = stock_quantity + ? WHERE product_id = ?',
+        [item.quantity, item.product_id]
+      );
+    }
 
     res.json({
       success: true,
       message: 'Order cancelled successfully',
       data: {
         transaction_id: transaction.transaction_id,
-        status: transaction.status
+        status: 'cancelled'
       }
     });
   } catch (error) {

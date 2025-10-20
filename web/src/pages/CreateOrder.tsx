@@ -28,8 +28,7 @@ const CreateOrder: React.FC = () => {
     setIsRFIDModalOpen(false);
     setCurrentOrderData(null);
     
-    // Show success message and redirect back to canteen dashboard
-    alert('Order completed successfully!');
+    // Redirect back to canteen dashboard
     navigate('/canteen');
   };
 

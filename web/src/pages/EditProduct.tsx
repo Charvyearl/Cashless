@@ -114,36 +114,75 @@ const EditProduct: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="p-6">Loading...</div>;
+    return <div style={{ padding: '24px' }}>Loading...</div>;
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Edit Product</h1>
-          <p className="mt-1 text-sm text-gray-600">Update menu item details</p>
+          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: 0 }}>Edit Product</h1>
+          <p style={{ marginTop: '4px', fontSize: '14px', color: '#6B7280', margin: '4px 0 0 0' }}>Update menu item details</p>
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div style={{ backgroundColor: 'white', border: '1px solid #E5E7EB', borderRadius: '8px', padding: '24px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Product Name</label>
-              <input value={form.product_name} onChange={(e)=>setForm({ ...form, product_name: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+              <label style={{ display: 'block', fontSize: '14px', color: '#6B7280', marginBottom: '4px' }}>Product Name</label>
+              <input 
+                value={form.product_name} 
+                onChange={(e)=>setForm({ ...form, product_name: e.target.value })} 
+                style={{ 
+                  width: '100%', 
+                  padding: '8px 12px', 
+                  border: '1px solid #D1D5DB', 
+                  borderRadius: '6px', 
+                  marginBottom: '8px',
+                  outline: 'none'
+                }} 
+                onFocus={(e) => e.target.style.borderColor = '#3B82F6'}
+                onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
+                required 
+              />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Price</label>
-              <input type="number" step="0.01" value={form.price} onChange={(e)=>setForm({ ...form, price: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+              <label style={{ display: 'block', fontSize: '14px', color: '#6B7280', marginBottom: '4px' }}>Price</label>
+              <input 
+                type="number" 
+                step="0.01" 
+                value={form.price} 
+                onChange={(e)=>setForm({ ...form, price: e.target.value })} 
+                style={{ 
+                  width: '100%', 
+                  padding: '8px 12px', 
+                  border: '1px solid #D1D5DB', 
+                  borderRadius: '6px', 
+                  marginBottom: '8px',
+                  outline: 'none'
+                }} 
+                onFocus={(e) => e.target.style.borderColor = '#3B82F6'}
+                onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
+                required 
+              />
             </div>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Category</label>
-              <div className="flex gap-2">
+              <label style={{ display: 'block', fontSize: '14px', color: '#6B7280', marginBottom: '4px' }}>Category</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  style={{ 
+                    flex: 1, 
+                    padding: '8px 12px', 
+                    border: '1px solid #D1D5DB', 
+                    borderRadius: '6px',
+                    marginBottom: '8px',
+                    outline: 'none'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = '#3B82F6'}
+                  onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
                   required
                   disabled={loadingCategories}
                 >
@@ -155,26 +194,58 @@ const EditProduct: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddCategory(!showAddCategory)}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-1"
+                  style={{ 
+                    padding: '8px 12px', 
+                    backgroundColor: '#5FA9FF', 
+                    color: 'white', 
+                    borderRadius: '6px', 
+                    border: 'none',
+                    marginBottom: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}
+                  onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#4A8FE7'}
+                  onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#5FA9FF'}
                 >
-                  <PlusIcon className="h-4 w-4" />
+                  <PlusIcon style={{ height: '16px', width: '16px' }} />
                   Add
                 </button>
               </div>
               {showAddCategory && (
-                <div className="mt-2 flex gap-2">
+                <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
                   <input
                     type="text"
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
                     placeholder="New category name"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    style={{ 
+                      flex: 1, 
+                      padding: '8px 12px', 
+                      border: '1px solid #D1D5DB', 
+                      borderRadius: '6px',
+                      marginBottom: '8px',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#3B82F6'}
+                    onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
                     onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
                   />
                   <button
                     type="button"
                     onClick={handleAddCategory}
-                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                    style={{ 
+                      padding: '8px 16px', 
+                      backgroundColor: '#5FA9FF', 
+                      color: 'white', 
+                      borderRadius: '6px', 
+                      border: 'none',
+                      marginBottom: '8px',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#4A8FE7'}
+                    onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#5FA9FF'}
                   >
                     Add
                   </button>
@@ -184,7 +255,17 @@ const EditProduct: React.FC = () => {
                       setShowAddCategory(false);
                       setNewCategory('');
                     }}
-                    className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                    style={{ 
+                      padding: '8px 16px', 
+                      backgroundColor: '#5FA9FF', 
+                      color: 'white', 
+                      borderRadius: '6px', 
+                      border: 'none',
+                      marginBottom: '8px',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#4A8FE7'}
+                    onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#5FA9FF'}
                   >
                     Cancel
                   </button>
@@ -192,17 +273,77 @@ const EditProduct: React.FC = () => {
               )}
             </div>
             <div>
-              <label className="block text-sm text-gray-600 mb-1">Stock Quantity</label>
-              <input type="number" value={form.stock_quantity} onChange={(e)=>setForm({ ...form, stock_quantity: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+              <label style={{ display: 'block', fontSize: '14px', color: '#6B7280', marginBottom: '4px' }}>Stock Quantity</label>
+              <input 
+                type="number" 
+                value={form.stock_quantity} 
+                onChange={(e)=>setForm({ ...form, stock_quantity: e.target.value })} 
+                style={{ 
+                  width: '100%', 
+                  padding: '8px 12px', 
+                  border: '1px solid #D1D5DB', 
+                  borderRadius: '6px', 
+                  marginBottom: '8px',
+                  outline: 'none'
+                }} 
+                onFocus={(e) => e.target.style.borderColor = '#3B82F6'}
+                onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
+                required 
+              />
             </div>
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Description</label>
-            <textarea value={form.description} onChange={(e)=>setForm({ ...form, description: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:outline-none" rows={4} />
+            <label style={{ display: 'block', fontSize: '14px', color: '#6B7280', marginBottom: '4px' }}>Description</label>
+            <textarea 
+              value={form.description} 
+              onChange={(e)=>setForm({ ...form, description: e.target.value })} 
+              style={{ 
+                width: '100%', 
+                padding: '8px 12px', 
+                border: '1px solid #D1D5DB', 
+                borderRadius: '6px', 
+                marginBottom: '8px',
+                outline: 'none',
+                resize: 'vertical'
+              }} 
+              onFocus={(e) => e.target.style.borderColor = '#3B82F6'}
+              onBlur={(e) => e.target.style.borderColor = '#D1D5DB'}
+              rows={4} 
+            />
           </div>
-          <div className="flex justify-end gap-3">
-            <button type="button" onClick={()=>navigate(-1)} className="px-4 py-2 rounded-md border border-gray-300">Cancel</button>
-            <button type="submit" disabled={saving} className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">{saving ? 'Saving...' : 'Save Changes'}</button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <button 
+              type="button" 
+              onClick={()=>navigate(-1)} 
+              style={{ 
+                padding: '8px 16px', 
+                borderRadius: '6px', 
+                border: '1px solid #D1D5DB',
+                backgroundColor: 'white',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#F9FAFB'}
+              onMouseLeave={(e) => (e.target as HTMLButtonElement).style.backgroundColor = 'white'}
+            >
+              Cancel
+            </button>
+            <button 
+              type="submit" 
+              disabled={saving} 
+              style={{ 
+                padding: '8px 16px', 
+                borderRadius: '6px', 
+                backgroundColor: '#5FA9FF', 
+                color: 'white', 
+                border: 'none',
+                cursor: saving ? 'not-allowed' : 'pointer',
+                opacity: saving ? 0.5 : 1
+              }}
+              onMouseEnter={(e) => !saving && ((e.target as HTMLButtonElement).style.backgroundColor = '#4A8FE7')}
+              onMouseLeave={(e) => !saving && ((e.target as HTMLButtonElement).style.backgroundColor = '#5FA9FF')}
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
           </div>
         </form>
       </div>

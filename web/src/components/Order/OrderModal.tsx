@@ -150,36 +150,84 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
         <div className="flex flex-1 overflow-hidden">
           {/* Products List */}
           <div className="flex-1 p-6 overflow-y-auto">
-            <div className="mb-4 space-y-4">
-              {/* Search */}
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search products by name, description, or category..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <XMarkIcon className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
+            <div className="mb-4">
+              {/* Search and Filter Row */}
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+                {/* Search */}
+                <div style={{ position: 'relative', width: '320px', margin: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 16px',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '6px',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#3B82F6';
+                      e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#D1D5DB';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      style={{
+                        position: 'absolute',
+                        right: '12px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#9CA3AF',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.target as HTMLButtonElement).style.color = '#6B7280';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.target as HTMLButtonElement).style.color = '#9CA3AF';
+                      }}
+                    >
+                      <XMarkIcon style={{ width: '16px', height: '16px' }} />
+                    </button>
+                  )}
+                </div>
 
-              {/* Category Filter */}
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
+                {/* Category Filter */}
+                <div style={{ width: '192px', margin: '8px' }}>
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '8px 16px',
+                      border: '1px solid #D1D5DB',
+                      borderRadius: '6px',
+                      outline: 'none'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = '#3B82F6';
+                      e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.1)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = '#D1D5DB';
+                      e.target.style.boxShadow = 'none';
+                    }}
+                  >
+                    {categories.map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               
               {/* Search Results Count */}
               {searchTerm && (
@@ -192,34 +240,62 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
             {loading ? (
               <div className="text-center py-8">Loading products...</div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 {filteredProducts.map(product => {
                   const quantityInOrder = getProductQuantityInOrder(product.product_id);
                   const maxQuantity = getMaxQuantityForProduct(product);
                   
                   return (
-                    <div key={product.product_id} className="border border-gray-200 rounded-lg p-4">
-                      <h3 className="font-medium text-gray-900">{product.product_name}</h3>
-                      <p className="text-sm text-gray-500 mt-1">{product.description}</p>
-                      <div className="mt-2 flex items-center justify-between">
-                        <span className="text-lg font-semibold text-green-600">
-                          {currency(product.price)}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          Stock: {product.stock_quantity}
-                        </span>
+                    <div 
+                      key={product.product_id} 
+                      style={{
+                        backgroundColor: 'white',
+                        border: '2px solid #E5E7EB',
+                        borderRadius: '12px',
+                        padding: '24px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        margin: '8px',
+                        transition: 'box-shadow 0.2s ease-in-out'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+                      }}
+                    >
+                      <div className="text-center">
+                        <h3 className="font-semibold text-gray-900 text-lg mb-2">{product.product_name}</h3>
+                        <p className="text-sm text-gray-600 mb-4 min-h-[2.5rem]">{product.description}</p>
+                        
+                        <div className="bg-gray-50 rounded-lg p-3 mb-4">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xl font-bold text-green-600">
+                              {currency(product.price)}
+                            </span>
+                            <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded-full">
+                              Stock: {product.stock_quantity}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {quantityInOrder === 0 ? (
+                          <button
+                            onClick={() => addToOrder(product)}
+                            className="w-full text-white px-4 py-3 text-base rounded-lg border-0 inline-flex items-center justify-center gap-2 font-medium hover:opacity-90 transition-opacity duration-200"
+                            style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+                          >
+                            <PlusIcon className="w-5 h-5" />
+                            Add to Order
+                          </button>
+                        ) : (
+                          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-3">
+                            <div className="text-center text-blue-800 font-medium">
+                              Added to Order ({quantityInOrder})
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      
-                      {quantityInOrder === 0 ? (
-                        <button
-                          onClick={() => addToOrder(product)}
-                          className="mt-2 text-white px-4 py-2 text-base rounded border-0 inline-flex items-center gap-2"
-                          style={{ backgroundColor: '#5FA9FF', border: 'none' }}
-                        >
-                          <PlusIcon className="w-5 h-5" />
-                          Add
-                        </button>
-                      ) : null}
                     </div>
                   );
                 })}
@@ -243,7 +319,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ isOpen, onClose, onOrderComplet
                         <button
                           onClick={() => updateQuantity(item.product_id, 0)}
                           className="text-white text-xs px-4 py-2 rounded border-0"
-                          style={{ backgroundColor: '#5FA9FF', border: 'none' }}
+                          style={{ backgroundColor: '#FF6B6B', border: 'none' }}
                         >
                           Remove
                         </button>

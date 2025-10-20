@@ -64,7 +64,12 @@ const Dashboard: React.FC = () => {
   const [showAddMoneyModal, setShowAddMoneyModal] = useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Student | Personnel | null>(null);
   const [userManagementTab, setUserManagementTab] = useState<'students' | 'personnel'>('students');
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   
+  // Function to trigger refresh of account lists
+  const triggerRefresh = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -298,6 +303,7 @@ const Dashboard: React.FC = () => {
           {/* User Management Content */}
           {userManagementTab === 'students' && (
             <AccountList
+              key={`students-${refreshTrigger}`}
               accountType="student"
               onEdit={handleEdit}
               onToggleActive={handleToggleActive}
@@ -307,6 +313,7 @@ const Dashboard: React.FC = () => {
 
           {userManagementTab === 'personnel' && (
             <AccountList
+              key={`personnel-${refreshTrigger}`}
               accountType="personnel"
               onEdit={handleEdit}
               onToggleActive={handleToggleActive}
@@ -352,10 +359,10 @@ const Dashboard: React.FC = () => {
                     </td>
                     <td className="px-4 py-3">
                       <div className="text-gray-900">
-                        {(t.personnel_last_name) ? `${t.personnel_last_name}` :
-                         (t.user_last_name) ? `${t.user_last_name}` : '—'}
+                        {(t.user_first_name && t.user_last_name) ? `${t.user_first_name} ${t.user_last_name}` :
+                         (t.personnel_first_name && t.personnel_last_name) ? `${t.personnel_first_name} ${t.personnel_last_name}` : '—'}
                       </div>
-                      <div className="text-gray-500 text-xs">{t.personnel_rfid || t.user_rfid || ''}</div>
+                      <div className="text-gray-500 text-xs">{t.user_rfid || t.personnel_rfid || ''}</div>
                     </td>
                     <td className="px-4 py-3">
                       <div className="text-gray-900 font-medium">{currency(t.total_amount)}</div>
@@ -477,7 +484,10 @@ const Dashboard: React.FC = () => {
       <CreateAccountModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onSuccess={() => setShowCreateModal(false)}
+        onSuccess={() => {
+          setShowCreateModal(false);
+          triggerRefresh();
+        }}
       />
 
       <EditAccountModal
@@ -488,7 +498,10 @@ const Dashboard: React.FC = () => {
         }}
         account={selectedAccount}
         accountType={userManagementTab === 'students' ? 'student' : 'personnel'}
-        onSuccess={() => setShowEditModal(false)}
+        onSuccess={() => {
+          setShowEditModal(false);
+          triggerRefresh();
+        }}
       />
 
       <AddMoneyModal
@@ -499,7 +512,10 @@ const Dashboard: React.FC = () => {
         }}
         account={selectedAccount}
         accountType={userManagementTab === 'students' ? 'student' : 'personnel'}
-        onSuccess={() => setShowAddMoneyModal(false)}
+        onSuccess={() => {
+          setShowAddMoneyModal(false);
+          triggerRefresh();
+        }}
       />
     </div>
   );

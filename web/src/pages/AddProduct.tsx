@@ -128,7 +128,14 @@ const AddProduct: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
+      <div style={{
+        backgroundColor: 'white',
+        border: '1px solid #E5E7EB',
+        borderRadius: '8px',
+        padding: '16px',
+        maxWidth: '600px',
+        margin: '0 auto'
+      }}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

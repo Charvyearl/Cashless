@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCardIcon, UserGroupIcon, CogIcon } from '@heroicons/react/24/outline';
+import { CreditCardIcon, UserGroupIcon, CogIcon, UserIcon, LockClosedIcon, ArrowLeftIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
 
 const LoginForm: React.FC = () => {
@@ -59,19 +59,49 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F6F7FB' }}>
+    <div
+      className="min-h-screen"
+      style={
+        selectedRole === 'canteen' || selectedRole === 'admin'
+          ? {
+              backgroundImage:
+                "linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(/smcbackground.jpg)",
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              backgroundAttachment: 'fixed'
+            }
+          : { backgroundColor: '#F6F7FB' }
+      }
+    >
       {/* Main Content */}
       <div className="relative z-10 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div className="w-full space-y-8 bg-white/90 backdrop-blur-sm rounded-lg p-8 shadow-xl" style={{ maxWidth: '800px' }}>
           <div>
-            <div className="mx-auto h-12 w-12 flex items-center justify-center rounded-full bg-primary-100">
-              <CreditCardIcon className="h-6 w-6 text-primary-600" />
+            <div style={{
+              margin: '0 auto',
+              height: '80px',
+              width: '80px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(95, 169, 255, 0.1)',
+              padding: '0'
+            }}>
+              <CreditCardIcon style={{ 
+                height: '40px', 
+                width: '40px', 
+                color: '#5FA9FF' 
+              }} />
             </div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            <h2 className="mt-6 text-center text-3xl font-extrabold" style={{ 
+              color: selectedRole === 'canteen' || selectedRole === 'admin' ? 'white' : 'black' 
+            }}>
               Cashless Canteen System
             </h2>
             <p className="mt-2 text-center text-sm text-gray-600">
-              {!selectedRole ? 'Select your role to continue' : 'Sign in with your RFID card'}
+              {!selectedRole ? 'Select your role to continue' : ''}
             </p>
           </div>
         
@@ -149,54 +179,190 @@ const LoginForm: React.FC = () => {
           </div>
          ) : selectedRole === 'canteen' ? (
            // Canteen Staff Login - Username/Password
-           <div className="bg-white rounded-lg p-6">
-             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-               <div className="flex items-center justify-between mb-4">
-                 <h3 className="text-lg font-medium text-gray-900">Canteen Staff Login</h3>
+           <div style={{ 
+             backgroundColor: 'white', 
+             borderRadius: '12px', 
+             padding: '20px',
+             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+             border: '1px solid #E5E7EB',
+             maxWidth: '500px',
+             margin: '0 auto'
+           }}>
+             <form onSubmit={handleSubmit} style={{ 
+               marginTop: '20px', 
+               display: 'flex', 
+               flexDirection: 'column', 
+               gap: '16px' 
+             }}>
+               <div style={{ 
+                 display: 'flex', 
+                 alignItems: 'center', 
+                 justifyContent: 'space-between', 
+                 marginBottom: '12px' 
+               }}>
+                 <h3 style={{ 
+                   fontSize: '18px', 
+                   fontWeight: '600', 
+                   color: '#111827',
+                   margin: 0
+                 }}>
+                   Canteen Staff Login
+                 </h3>
                  <button
                    type="button"
                    onClick={handleBackToRoleSelection}
-                   className="text-sm text-blue-600 hover:text-blue-500"
+                   style={{
+                     fontSize: '14px',
+                     color: '#2563EB',
+                     backgroundColor: 'transparent',
+                     border: 'none',
+                     cursor: 'pointer',
+                     padding: '8px',
+                     borderRadius: '6px',
+                     transition: 'all 0.2s ease',
+                     display: 'flex',
+                     alignItems: 'center',
+                     gap: '6px'
+                   }}
+                   onMouseEnter={(e) => {
+                     e.currentTarget.style.color = '#1D4ED8';
+                     e.currentTarget.style.backgroundColor = '#EFF6FF';
+                   }}
+                   onMouseLeave={(e) => {
+                     e.currentTarget.style.color = '#2563EB';
+                     e.currentTarget.style.backgroundColor = 'transparent';
+                   }}
                  >
-                   ← Back to role selection
+                   <ArrowLeftIcon style={{ width: '16px', height: '16px' }} />
+                   Back to role selection
                  </button>
                </div>
 
                <div>
-                 <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                 <label htmlFor="username" style={{ 
+                   display: 'block', 
+                   fontSize: '14px', 
+                   fontWeight: '500', 
+                   color: '#374151', 
+                   marginBottom: '8px' 
+                 }}>
                    Username
                  </label>
+                 <div style={{ position: 'relative' }}>
+                   <div style={{
+                     position: 'absolute',
+                     left: '12px',
+                     top: '50%',
+                     transform: 'translateY(-50%)',
+                     zIndex: 1,
+                     color: '#6B7280'
+                   }}>
+                     <UserIcon style={{ width: '20px', height: '20px' }} />
+                   </div>
                  <input
                    id="username"
                    name="username"
                    type="text"
                    required
-                   className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                     style={{
+                       appearance: 'none',
+                       borderRadius: '8px',
+                       position: 'relative',
+                       display: 'block',
+                       width: '100%',
+                       padding: '12px 16px 12px 44px',
+                       border: '2px solid #D1D5DB',
+                       backgroundColor: 'white',
+                       color: '#111827',
+                       fontSize: '14px',
+                       outline: 'none',
+                       transition: 'all 0.2s ease',
+                       boxSizing: 'border-box'
+                     }}
+                     onFocus={(e) => {
+                       e.target.style.borderColor = '#5FA9FF';
+                       e.target.style.boxShadow = '0 0 0 3px rgba(95, 169, 255, 0.1)';
+                     }}
+                     onBlur={(e) => {
+                       e.target.style.borderColor = '#D1D5DB';
+                       e.target.style.boxShadow = 'none';
+                     }}
                    placeholder="Enter your username"
                    value={username}
                    onChange={(e) => setUsername(e.target.value)}
                  />
+                 </div>
                </div>
 
                <div>
-                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                 <label htmlFor="password" style={{ 
+                   display: 'block', 
+                   fontSize: '14px', 
+                   fontWeight: '500', 
+                   color: '#374151', 
+                   marginBottom: '8px' 
+                 }}>
                    Password
                  </label>
+                 <div style={{ position: 'relative' }}>
+                   <div style={{
+                     position: 'absolute',
+                     left: '12px',
+                     top: '50%',
+                     transform: 'translateY(-50%)',
+                     zIndex: 1,
+                     color: '#6B7280'
+                   }}>
+                     <LockClosedIcon style={{ width: '20px', height: '20px' }} />
+                   </div>
                  <input
                    id="password"
                    name="password"
                    type="password"
                    required
-                   className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                     style={{
+                       appearance: 'none',
+                       borderRadius: '8px',
+                       position: 'relative',
+                       display: 'block',
+                       width: '100%',
+                       padding: '12px 16px 12px 44px',
+                       border: '2px solid #D1D5DB',
+                       backgroundColor: 'white',
+                       color: '#111827',
+                       fontSize: '14px',
+                       outline: 'none',
+                       transition: 'all 0.2s ease',
+                       boxSizing: 'border-box'
+                     }}
+                     onFocus={(e) => {
+                       e.target.style.borderColor = '#5FA9FF';
+                       e.target.style.boxShadow = '0 0 0 3px rgba(95, 169, 255, 0.1)';
+                     }}
+                     onBlur={(e) => {
+                       e.target.style.borderColor = '#D1D5DB';
+                       e.target.style.boxShadow = 'none';
+                     }}
                    placeholder="Enter your password"
                    value={password}
                    onChange={(e) => setPassword(e.target.value)}
                  />
+                 </div>
                </div>
 
                {error && (
-                 <div className="rounded-md bg-red-50 p-4">
-                   <div className="text-sm text-red-700">{error}</div>
+                 <div style={{
+                   borderRadius: '8px',
+                   backgroundColor: '#FEF2F2',
+                   padding: '16px',
+                   border: '1px solid #FECACA'
+                 }}>
+                   <div style={{ 
+                     fontSize: '14px', 
+                     color: '#DC2626' 
+                   }}>
+                     {error}
+                   </div>
                  </div>
                )}
 
@@ -204,16 +370,67 @@ const LoginForm: React.FC = () => {
                  <button
                    type="submit"
                    disabled={loading}
-                   className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                   style={{
+                     position: 'relative',
+                     width: '100%',
+                     display: 'flex',
+                     justifyContent: 'center',
+                     alignItems: 'center',
+                     gap: '8px',
+                     padding: '12px 16px',
+                     border: 'none',
+                     fontSize: '14px',
+                     fontWeight: '500',
+                     borderRadius: '8px',
+                     color: 'white',
+                     backgroundColor: '#5FA9FF',
+                     cursor: loading ? 'not-allowed' : 'pointer',
+                     opacity: loading ? 0.6 : 1,
+                     transition: 'all 0.2s ease',
+                     outline: 'none'
+                   }}
+                   onMouseEnter={(e) => {
+                     if (!loading) {
+                       e.currentTarget.style.backgroundColor = '#4A8FE7';
+                       e.currentTarget.style.transform = 'translateY(-1px)';
+                       e.currentTarget.style.boxShadow = '0 4px 12px rgba(95, 169, 255, 0.3)';
+                     }
+                   }}
+                   onMouseLeave={(e) => {
+                     if (!loading) {
+                       e.currentTarget.style.backgroundColor = '#5FA9FF';
+                       e.currentTarget.style.transform = 'translateY(0)';
+                       e.currentTarget.style.boxShadow = 'none';
+                     }
+                   }}
+                   onFocus={(e) => {
+                     e.currentTarget.style.boxShadow = '0 0 0 3px rgba(95, 169, 255, 0.2)';
+                   }}
+                   onBlur={(e) => {
+                     e.currentTarget.style.boxShadow = 'none';
+                   }}
                  >
+                   <ArrowRightOnRectangleIcon style={{ width: '18px', height: '18px' }} />
                    {loading ? 'Signing in...' : 'Sign in'}
                  </button>
                </div>
 
-               <div className="text-center">
-                 <p className="text-sm text-gray-600">
+               <div style={{ textAlign: 'center' }}>
+                 <p style={{ 
+                   fontSize: '14px', 
+                   color: '#6B7280',
+                   margin: 0
+                 }}>
                    Demo Credentials: <br />
-                   <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                   <span style={{
+                     fontFamily: 'monospace',
+                     fontSize: '12px',
+                     backgroundColor: '#F3F4F6',
+                     padding: '4px 8px',
+                     borderRadius: '4px',
+                     display: 'inline-block',
+                     marginTop: '4px'
+                   }}>
                      Username: staff, Password: staff123
                    </span>
                  </p>
@@ -222,54 +439,190 @@ const LoginForm: React.FC = () => {
            </div>
          ) : (
            // Admin Login - Username/Password
-           <div className="bg-white rounded-lg p-6">
-             <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-               <div className="flex items-center justify-between mb-4">
-                 <h3 className="text-lg font-medium text-gray-900">Admin Login</h3>
+           <div style={{ 
+             backgroundColor: 'white', 
+             borderRadius: '12px', 
+             padding: '20px',
+             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+             border: '1px solid #E5E7EB',
+             maxWidth: '500px',
+             margin: '0 auto'
+           }}>
+             <form onSubmit={handleSubmit} style={{ 
+               marginTop: '20px', 
+               display: 'flex', 
+               flexDirection: 'column', 
+               gap: '16px' 
+             }}>
+               <div style={{ 
+                 display: 'flex', 
+                 alignItems: 'center', 
+                 justifyContent: 'space-between', 
+                 marginBottom: '12px' 
+               }}>
+                 <h3 style={{ 
+                   fontSize: '18px', 
+                   fontWeight: '600', 
+                   color: '#111827',
+                   margin: 0
+                 }}>
+                   Admin Login
+                 </h3>
                  <button
                    type="button"
                    onClick={handleBackToRoleSelection}
-                   className="text-sm text-blue-600 hover:text-blue-500"
+                   style={{
+                     fontSize: '14px',
+                     color: '#2563EB',
+                     backgroundColor: 'transparent',
+                     border: 'none',
+                     cursor: 'pointer',
+                     padding: '8px',
+                     borderRadius: '6px',
+                     transition: 'all 0.2s ease',
+                     display: 'flex',
+                     alignItems: 'center',
+                     gap: '6px'
+                   }}
+                   onMouseEnter={(e) => {
+                     e.currentTarget.style.color = '#1D4ED8';
+                     e.currentTarget.style.backgroundColor = '#EFF6FF';
+                   }}
+                   onMouseLeave={(e) => {
+                     e.currentTarget.style.color = '#2563EB';
+                     e.currentTarget.style.backgroundColor = 'transparent';
+                   }}
                  >
-                   ← Back to role selection
+                   <ArrowLeftIcon style={{ width: '16px', height: '16px' }} />
+                   Back to role selection
                  </button>
                </div>
 
                <div>
-                 <label htmlFor="admin-username" className="block text-sm font-medium text-gray-700 mb-2">
+                 <label htmlFor="admin-username" style={{ 
+                   display: 'block', 
+                   fontSize: '14px', 
+                   fontWeight: '500', 
+                   color: '#374151', 
+                   marginBottom: '8px' 
+                 }}>
                    Username
                  </label>
+                 <div style={{ position: 'relative' }}>
+                   <div style={{
+                     position: 'absolute',
+                     left: '12px',
+                     top: '50%',
+                     transform: 'translateY(-50%)',
+                     zIndex: 1,
+                     color: '#6B7280'
+                   }}>
+                     <UserIcon style={{ width: '20px', height: '20px' }} />
+                   </div>
                  <input
                    id="admin-username"
                    name="username"
                    type="text"
                    required
-                   className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                     style={{
+                       appearance: 'none',
+                       borderRadius: '8px',
+                       position: 'relative',
+                       display: 'block',
+                       width: '100%',
+                       padding: '12px 16px 12px 44px',
+                       border: '2px solid #D1D5DB',
+                       backgroundColor: 'white',
+                       color: '#111827',
+                       fontSize: '14px',
+                       outline: 'none',
+                       transition: 'all 0.2s ease',
+                       boxSizing: 'border-box'
+                     }}
+                     onFocus={(e) => {
+                       e.target.style.borderColor = '#5FA9FF';
+                       e.target.style.boxShadow = '0 0 0 3px rgba(95, 169, 255, 0.1)';
+                     }}
+                     onBlur={(e) => {
+                       e.target.style.borderColor = '#D1D5DB';
+                       e.target.style.boxShadow = 'none';
+                     }}
                    placeholder="Enter your username"
                    value={username}
                    onChange={(e) => setUsername(e.target.value)}
                  />
+                 </div>
                </div>
 
                <div>
-                 <label htmlFor="admin-password" className="block text-sm font-medium text-gray-700 mb-2">
+                 <label htmlFor="admin-password" style={{ 
+                   display: 'block', 
+                   fontSize: '14px', 
+                   fontWeight: '500', 
+                   color: '#374151', 
+                   marginBottom: '8px' 
+                 }}>
                    Password
                  </label>
+                 <div style={{ position: 'relative' }}>
+                   <div style={{
+                     position: 'absolute',
+                     left: '12px',
+                     top: '50%',
+                     transform: 'translateY(-50%)',
+                     zIndex: 1,
+                     color: '#6B7280'
+                   }}>
+                     <LockClosedIcon style={{ width: '20px', height: '20px' }} />
+                   </div>
                  <input
                    id="admin-password"
                    name="password"
                    type="password"
                    required
-                   className="appearance-none rounded-lg relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary-500 focus:border-primary-500 focus:z-10 sm:text-sm"
+                     style={{
+                       appearance: 'none',
+                       borderRadius: '8px',
+                       position: 'relative',
+                       display: 'block',
+                       width: '100%',
+                       padding: '12px 16px 12px 44px',
+                       border: '2px solid #D1D5DB',
+                       backgroundColor: 'white',
+                       color: '#111827',
+                       fontSize: '14px',
+                       outline: 'none',
+                       transition: 'all 0.2s ease',
+                       boxSizing: 'border-box'
+                     }}
+                     onFocus={(e) => {
+                       e.target.style.borderColor = '#5FA9FF';
+                       e.target.style.boxShadow = '0 0 0 3px rgba(95, 169, 255, 0.1)';
+                     }}
+                     onBlur={(e) => {
+                       e.target.style.borderColor = '#D1D5DB';
+                       e.target.style.boxShadow = 'none';
+                     }}
                    placeholder="Enter your password"
                    value={password}
                    onChange={(e) => setPassword(e.target.value)}
                  />
+                 </div>
                </div>
 
                {error && (
-                 <div className="rounded-md bg-red-50 p-4">
-                   <div className="text-sm text-red-700">{error}</div>
+                 <div style={{
+                   borderRadius: '8px',
+                   backgroundColor: '#FEF2F2',
+                   padding: '16px',
+                   border: '1px solid #FECACA'
+                 }}>
+                   <div style={{ 
+                     fontSize: '14px', 
+                     color: '#DC2626' 
+                   }}>
+                     {error}
+                   </div>
                  </div>
                )}
 
@@ -277,16 +630,67 @@ const LoginForm: React.FC = () => {
                  <button
                    type="submit"
                    disabled={loading}
-                   className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                   style={{
+                     position: 'relative',
+                     width: '100%',
+                     display: 'flex',
+                     justifyContent: 'center',
+                     alignItems: 'center',
+                     gap: '8px',
+                     padding: '12px 16px',
+                     border: 'none',
+                     fontSize: '14px',
+                     fontWeight: '500',
+                     borderRadius: '8px',
+                     color: 'white',
+                     backgroundColor: '#5FA9FF',
+                     cursor: loading ? 'not-allowed' : 'pointer',
+                     opacity: loading ? 0.6 : 1,
+                     transition: 'all 0.2s ease',
+                     outline: 'none'
+                   }}
+                   onMouseEnter={(e) => {
+                     if (!loading) {
+                       e.currentTarget.style.backgroundColor = '#4A8FE7';
+                       e.currentTarget.style.transform = 'translateY(-1px)';
+                       e.currentTarget.style.boxShadow = '0 4px 12px rgba(95, 169, 255, 0.3)';
+                     }
+                   }}
+                   onMouseLeave={(e) => {
+                     if (!loading) {
+                       e.currentTarget.style.backgroundColor = '#5FA9FF';
+                       e.currentTarget.style.transform = 'translateY(0)';
+                       e.currentTarget.style.boxShadow = 'none';
+                     }
+                   }}
+                   onFocus={(e) => {
+                     e.currentTarget.style.boxShadow = '0 0 0 3px rgba(95, 169, 255, 0.2)';
+                   }}
+                   onBlur={(e) => {
+                     e.currentTarget.style.boxShadow = 'none';
+                   }}
                  >
+                   <ArrowRightOnRectangleIcon style={{ width: '18px', height: '18px' }} />
                    {loading ? 'Signing in...' : 'Sign in'}
                  </button>
                </div>
 
-               <div className="text-center">
-                 <p className="text-sm text-gray-600">
+               <div style={{ textAlign: 'center' }}>
+                 <p style={{ 
+                   fontSize: '14px', 
+                   color: '#6B7280',
+                   margin: 0
+                 }}>
                    Demo Credentials: <br />
-                   <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                   <span style={{
+                     fontFamily: 'monospace',
+                     fontSize: '12px',
+                     backgroundColor: '#F3F4F6',
+                     padding: '4px 8px',
+                     borderRadius: '4px',
+                     display: 'inline-block',
+                     marginTop: '4px'
+                   }}>
                      Username: admin, Password: admin123
                    </span>
                  </p>

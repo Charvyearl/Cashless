@@ -307,7 +307,22 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                   name="rfid_card_id"
                   value={formData.rfid_card_id}
                   onChange={handleInputChange}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ml-2"
+                  style={{
+                    flex: 1,
+                    padding: '12px 16px',
+                    border: '1px solid #D1D5DB',
+                    borderRadius: '6px',
+                    outline: 'none',
+                    marginLeft: '8px'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#3B82F6';
+                    e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.1)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#D1D5DB';
+                    e.target.style.boxShadow = 'none';
+                  }}
                   placeholder="(or enter manually)"
                 />
               </div>
@@ -317,16 +332,21 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                 name="rfid_card_id"
                 value={formData.rfid_card_id}
                 readOnly
-                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 mt-2"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '6px',
+                  backgroundColor: '#F9FAFB',
+                  marginTop: '8px'
+                }}
               />
             )}
-            <div className="mt-2 text-xs text-gray-500">
-              Auto mode: waits for the most recent scan from any connected reader. For pairing a specific reader, switch to session mode.
-            </div>
+           
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <div style={{ flex: 1 }}>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 First Name *
               </label>
@@ -336,11 +356,25 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                 value={formData.first_name}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '6px',
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3B82F6';
+                  e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#D1D5DB';
+                  e.target.style.boxShadow = 'none';
+                }}
                 placeholder="First name"
               />
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Last Name *
               </label>
@@ -350,7 +384,21 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                 value={formData.last_name}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ml-2"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '6px',
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3B82F6';
+                  e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#D1D5DB';
+                  e.target.style.boxShadow = 'none';
+                }}
                 placeholder="Last name"
               />
             </div>
@@ -365,13 +413,28 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 my-2"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                border: '1px solid #D1D5DB',
+                borderRadius: '6px',
+                outline: 'none',
+                margin: '8px 0'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#3B82F6';
+                e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#D1D5DB';
+                e.target.style.boxShadow = 'none';
+              }}
               placeholder="email@example.com"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <div style={{ flex: 1 }}>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Password *
               </label>
@@ -382,11 +445,25 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                 onChange={handleInputChange}
                 required
                 minLength={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '6px',
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3B82F6';
+                  e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#D1D5DB';
+                  e.target.style.boxShadow = 'none';
+                }}
                 placeholder="Min 6 characters"
               />
             </div>
-            <div>
+            <div style={{ flex: 1 }}>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Confirm Password *
               </label>
@@ -396,7 +473,21 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ml-2"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '6px',
+                  outline: 'none'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3B82F6';
+                  e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#D1D5DB';
+                  e.target.style.boxShadow = 'none';
+                }}
                 placeholder="Confirm password"
               />
             </div>
@@ -414,7 +505,22 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
               min="0"
               max="10000"
               step="0.01"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 my-2"
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                border: '1px solid #D1D5DB',
+                borderRadius: '6px',
+                outline: 'none',
+                margin: '8px 0'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#3B82F6';
+                e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#D1D5DB';
+                e.target.style.boxShadow = 'none';
+              }}
               placeholder="0.00"
             />
           </div>
