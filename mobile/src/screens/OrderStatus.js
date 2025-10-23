@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { ordersAPI } from '../api/client';
 
-export default function OrderStatus({ scope } = {}) {
+export default function OrderStatus({ scope, onOrderUpdate } = {}) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -22,9 +22,29 @@ export default function OrderStatus({ scope } = {}) {
   const reload = async () => {
     setLoading(true);
     try {
-      const params = { limit: 20, status: 'pending' };
+      // Fetch orders without status filter to get all active orders
+      const params = { limit: 50 };
       const res = await ordersAPI.listOrders(params);
-      if (res?.success) setOrders(res.data.transactions || res.data || []);
+      if (res?.success) {
+        const allOrders = res.data.transactions || res.data || [];
+        // Filter to show only pending and ready orders
+        const activeOrders = allOrders.filter(o => {
+          const status = String(o.status || '').toLowerCase();
+          return status === 'pending' || status === 'ready';
+        });
+        // Sort by status (ready first, then pending) and then by date
+        activeOrders.sort((a, b) => {
+          const statusA = String(a.status || '').toLowerCase();
+          const statusB = String(b.status || '').toLowerCase();
+          if (statusA === 'ready' && statusB !== 'ready') return -1;
+          if (statusA !== 'ready' && statusB === 'ready') return 1;
+          // If same status, sort by date (newest first)
+          return new Date(b.transaction_date || b.date) - new Date(a.transaction_date || a.date);
+        });
+        setOrders(activeOrders);
+        // Trigger balance update in parent component
+        if (onOrderUpdate) onOrderUpdate();
+      }
     } catch (_) {}
     finally { setLoading(false); }
   };
@@ -45,24 +65,37 @@ export default function OrderStatus({ scope } = {}) {
           {loading ? (
             <Text style={styles.empty}>Loading...</Text>
           ) : orders.length === 0 ? (
-            <Text style={styles.empty}>No pending orders</Text>
+            <Text style={styles.empty}>No active orders</Text>
           ) : (
-            <View style={{ width: '100%', gap: 12 }}>
-              {orders.map((o) => (
-                <View key={o.transaction_id || o.id} style={styles.row}>
-                  <View style={styles.rowHeader}>
-                    <Text style={styles.rowType}>pending</Text>
-                    <View style={[styles.statusBadge, styles.badgePending]}>
-                      <Text style={styles.statusText}>pending</Text>
+            <ScrollView 
+              style={{ width: '100%' }}
+              contentContainerStyle={{ gap: 12, paddingBottom: 20 }}
+              showsVerticalScrollIndicator={false}
+            >
+              {orders.map((o) => {
+                const status = String(o.status || '').toLowerCase();
+                const isReady = status === 'ready';
+                const badgeStyle = isReady ? styles.badgeReady : styles.badgePending;
+                const badgeTextStyle = isReady ? styles.statusTextReady : styles.statusText;
+                
+                return (
+                  <View key={o.transaction_id || o.id} style={[styles.row, isReady && styles.rowReady]}>
+                    <View style={styles.rowHeader}>
+                      <Text style={[styles.rowType, isReady && styles.rowTypeReady]}>
+                        {isReady ? '🎉 Ready for Pickup' : '⏳ Preparing'}
+                      </Text>
+                      <View style={[styles.statusBadge, badgeStyle]}>
+                        <Text style={badgeTextStyle}>{status}</Text>
+                      </View>
+                    </View>
+                    <View style={styles.rowBody}>
+                      <Text style={styles.amount}>₱{Number(o.total_amount || o.amount || 0).toFixed(2)}</Text>
+                      <Text style={styles.dateText}>{formatManila(o.transaction_date || o.date || '')}</Text>
                     </View>
                   </View>
-                  <View style={styles.rowBody}>
-                    <Text style={styles.amount}>₱{Number(o.total_amount || o.amount || 0).toFixed(2)}</Text>
-                    <Text style={styles.dateText}>{formatManila(o.transaction_date || o.date || '')}</Text>
-                  </View>
-                </View>
-              ))}
-            </View>
+                );
+              })}
+            </ScrollView>
           )}
         </View>
       </View>
@@ -78,15 +111,34 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
   icon: { fontSize: 16, marginRight: 8 },
-  title: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+  title: { fontSize: 18, fontWeight: 'bold', color: '#333', flex: 1 },
   content: { flex: 1, justifyContent: 'center', alignItems: 'center', minHeight: 200 },
   empty: { fontSize: 16, color: '#666' },
-  row: { borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, padding: 12, backgroundColor: 'white' },
+  row: { 
+    borderWidth: 1, 
+    borderColor: '#e5e7eb', 
+    borderRadius: 12, 
+    padding: 12, 
+    backgroundColor: 'white',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  rowReady: {
+    borderColor: '#4caf50',
+    borderWidth: 2,
+    backgroundColor: '#f1f8f4',
+  },
   rowHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 },
-  rowType: { fontSize: 14, fontWeight: '600', color: '#333' },
+  rowType: { fontSize: 14, fontWeight: '600', color: '#333', flex: 1 },
+  rowTypeReady: { color: '#2e7d32' },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
   badgePending: { backgroundColor: '#fff7e6' },
-  statusText: { fontSize: 12, color: '#333', fontWeight: '600', textTransform: 'capitalize' },
+  badgeReady: { backgroundColor: '#e8f5e9' },
+  statusText: { fontSize: 12, color: '#f57c00', fontWeight: '600', textTransform: 'capitalize' },
+  statusTextReady: { fontSize: 12, color: '#2e7d32', fontWeight: '700', textTransform: 'capitalize' },
   rowBody: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   amount: { fontSize: 16, fontWeight: '700', color: '#2e7d32' },
   dateText: { fontSize: 12, color: '#6b7280' },

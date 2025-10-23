@@ -20,7 +20,27 @@ const app = express();
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
     ? ['https://yourdomain.com']
-    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8080', 'http://localhost:8081', 'http://localhost:19006'],
+    : function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true);
+        
+        // Allow localhost and local network IPs for development
+        const allowedPatterns = [
+          /^http:\/\/localhost(:\d+)?$/,
+          /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+          /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/,  // Local network 192.168.x.x
+          /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/,  // Local network 10.x.x.x
+          /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}(:\d+)?$/,  // Local network 172.16-31.x.x
+        ];
+        
+        const isAllowed = allowedPatterns.some(pattern => pattern.test(origin));
+        if (isAllowed) {
+          callback(null, true);
+        } else {
+          console.warn('⚠️  CORS blocked origin:', origin);
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
   credentials: true,
 };
 app.use(cors(corsOptions));
@@ -99,10 +119,16 @@ const startServer = async () => {
       console.log('IOT_DEVICE_KEY set:', Boolean(process.env.IOT_DEVICE_KEY));
     }
 
-    app.listen(config.port, () => {
+    // Listen on 0.0.0.0 to allow connections from network devices (Expo Go, etc.)
+    const host = config.nodeEnv === 'production' ? undefined : '0.0.0.0';
+    app.listen(config.port, host, () => {
       console.log(`🚀 Server running on port ${config.port}`);
       console.log(`📊 Environment: ${config.nodeEnv}`);
-      console.log(`🔗 Health check: http://localhost:${config.port}/health`);
+      console.log(`🔗 Local: http://localhost:${config.port}/health`);
+      if (host === '0.0.0.0') {
+        console.log(`🌐 Network: http://<your-ip>:${config.port}/health`);
+        console.log(`📱 For Expo Go: Make sure your phone and computer are on the same network`);
+      }
     });
   } catch (error) {
     console.error('Failed to start server:', error);

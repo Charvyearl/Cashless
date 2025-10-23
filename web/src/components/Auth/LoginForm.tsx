@@ -421,7 +421,7 @@ const LoginForm: React.FC = () => {
                    color: '#6B7280',
                    margin: 0
                  }}>
-                   Demo Credentials: <br />
+                    Credentials: <br />
                    <span style={{
                      fontFamily: 'monospace',
                      fontSize: '12px',
@@ -681,7 +681,7 @@ const LoginForm: React.FC = () => {
                    color: '#6B7280',
                    margin: 0
                  }}>
-                   Demo Credentials: <br />
+                    Credentials: <br />
                    <span style={{
                      fontFamily: 'monospace',
                      fontSize: '12px',

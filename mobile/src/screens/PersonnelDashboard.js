@@ -4,7 +4,7 @@ import {
   Text,
   View,
   TouchableOpacity,
-  StatusBar,
+  StatusBar as RNStatusBar,
   Image,
   Alert,
   ScrollView,
@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import PersonnelHome from './PersonnelHome';
 import OrderStatus from './OrderStatus';
@@ -28,21 +29,29 @@ export default function PersonnelDashboard({ onLogout, user, initialBalance = 0 
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
 
-  useEffect(() => {
-    let isMounted = true;
-    const load = async () => {
-      try {
-        const res = await walletAPI.getBalance();
-        if (isMounted && res?.success) {
-          setBalance(res.data.balance);
-        }
-      } catch (e) {
-        // Silent
+  // Function to refresh balance
+  const refreshBalance = async () => {
+    try {
+      const res = await walletAPI.getBalance();
+      if (res?.success) {
+        setBalance(res.data.balance);
       }
-    };
-    load();
-    return () => { isMounted = false; };
+    } catch (e) {
+      // Silent
+    }
+  };
+
+  useEffect(() => {
+    refreshBalance();
   }, []);
+
+  // Auto-refresh balance every 10 seconds when on order or transaction tab
+  useEffect(() => {
+    if (activeTab === 'order' || activeTab === 'transaction') {
+      const interval = setInterval(refreshBalance, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab]);
 
   // Animation effects
   useEffect(() => {
@@ -85,8 +94,8 @@ export default function PersonnelDashboard({ onLogout, user, initialBalance = 0 
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <StatusBar style="light" backgroundColor="#00BCD4" translucent={false} />
       
       {/* Modern Top Bar */}
       <Animated.View 
@@ -145,6 +154,12 @@ export default function PersonnelDashboard({ onLogout, user, initialBalance = 0 
           
           <View style={styles.balanceAmountContainer}>
             <Text style={styles.balanceAmount}>₱{Number(balance).toFixed(2)}</Text>
+            <TouchableOpacity 
+              style={styles.refreshBalanceButton}
+              onPress={refreshBalance}
+            >
+              <Ionicons name="refresh-outline" size={20} color="#00BCD4" />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.studentInfo}>
@@ -183,9 +198,9 @@ export default function PersonnelDashboard({ onLogout, user, initialBalance = 0 
               Alert.alert('Added', `${item.product_name || item.name} added to cart`);
             }} />
           ) : activeTab === 'order' ? (
-            <OrderStatus scope="personnel" />
+            <OrderStatus scope="personnel" onOrderUpdate={refreshBalance} />
           ) : (
-            <TransactionHistory scope="personnel" />
+            <TransactionHistory scope="personnel" onTransactionUpdate={refreshBalance} />
           )}
         </View>
       </ScrollView>
@@ -269,6 +284,8 @@ export default function PersonnelDashboard({ onLogout, user, initialBalance = 0 
                         Alert.alert('Reservation', 'Order created successfully');
                         setCart([]);
                         setShowCart(false);
+                        // Refresh balance after successful order
+                        refreshBalance();
                       } else {
                         Alert.alert('Reservation failed', res?.message || 'Please try again');
                       }
@@ -298,7 +315,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     backgroundColor: '#00BCD4',
-    paddingTop: 50,
+    paddingTop: 12,
     paddingBottom: 16,
     paddingHorizontal: 20,
     flexDirection: 'row',
@@ -405,12 +422,19 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     marginBottom: 20,
-    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   balanceAmount: {
     fontSize: 28,
     fontWeight: '700',
     color: '#00BCD4',
+  },
+  refreshBalanceButton: {
+    padding: 8,
+    backgroundColor: 'rgba(0, 188, 212, 0.1)',
+    borderRadius: 8,
   },
   studentInfo: {
     borderTopWidth: 1,
@@ -442,7 +466,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 100, // Above bottom navigation
+    bottom: 110, // Above bottom navigation with extra clearance
     right: 20,
     backgroundColor: '#00BCD4',
     flexDirection: 'row',
@@ -454,7 +478,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 10, // Higher than bottom nav (which has elevation: 8)
+    zIndex: 1000, // Ensure it's above bottom nav on iOS
   },
   fabContent: {
     flexDirection: 'row',

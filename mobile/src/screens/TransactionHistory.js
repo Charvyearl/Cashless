@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-export default function TransactionHistory({ scope } = {}) {
+export default function TransactionHistory({ scope, onTransactionUpdate } = {}) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState(null); // { transaction, items, customer }
@@ -37,6 +37,8 @@ export default function TransactionHistory({ scope } = {}) {
           (t) => String(t.status || '').toLowerCase() === 'completed'
         );
         setTransactions(list);
+        // Trigger balance update in parent component
+        if (onTransactionUpdate) onTransactionUpdate();
       }
     } catch (_) {}
     finally { setLoading(false); }

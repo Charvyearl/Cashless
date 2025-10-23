@@ -4,7 +4,7 @@ import {
   Text,
   View,
   TouchableOpacity,
-  StatusBar,
+  StatusBar as RNStatusBar,
   Image,
   Alert,
   ScrollView,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import StudentHome from './StudentHome';
 import TransactionHistory from './TransactionHistory';
@@ -24,21 +25,29 @@ export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
   const [fadeAnim] = useState(new Animated.Value(0));
   const [slideAnim] = useState(new Animated.Value(30));
 
-  useEffect(() => {
-    let isMounted = true;
-    const load = async () => {
-      try {
-        const res = await walletAPI.getBalance();
-        if (isMounted && res?.success) {
-          setBalance(res.data.balance);
-        }
-      } catch (e) {
-        // Silent fail for now; could show a toast
+  // Function to refresh balance
+  const refreshBalance = async () => {
+    try {
+      const res = await walletAPI.getBalance();
+      if (res?.success) {
+        setBalance(res.data.balance);
       }
-    };
-    load();
-    return () => { isMounted = false; };
+    } catch (e) {
+      // Silent fail for now; could show a toast
+    }
+  };
+
+  useEffect(() => {
+    refreshBalance();
   }, []);
+
+  // Auto-refresh balance every 10 seconds when on transaction tab
+  useEffect(() => {
+    if (activeTab === 'transaction') {
+      const interval = setInterval(refreshBalance, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [activeTab]);
 
   // Animation effects
   useEffect(() => {
@@ -72,8 +81,8 @@ export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar style="dark" />
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <StatusBar style="light" backgroundColor="#00BCD4" translucent={false} />
       
       {/* Modern Top Bar */}
       <Animated.View 
@@ -132,6 +141,12 @@ export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
           
           <View style={styles.balanceAmountContainer}>
             <Text style={styles.balanceAmount}>₱{Number(balance).toFixed(2)}</Text>
+            <TouchableOpacity 
+              style={styles.refreshBalanceButton}
+              onPress={refreshBalance}
+            >
+              <Ionicons name="refresh-outline" size={20} color="#00BCD4" />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.studentInfo}>
@@ -152,7 +167,7 @@ export default function Dashboard({ onLogout, user, initialBalance = 0 }) {
           {activeTab === 'home' ? (
             <StudentHome />
           ) : (
-            <TransactionHistory />
+            <TransactionHistory onTransactionUpdate={refreshBalance} />
           )}
         </View>
       </ScrollView>
@@ -170,7 +185,7 @@ const styles = StyleSheet.create({
   },
   topBar: {
     backgroundColor: '#00BCD4',
-    paddingTop: 50,
+    paddingTop: 12,
     paddingBottom: 16,
     paddingHorizontal: 20,
     flexDirection: 'row',
@@ -277,12 +292,19 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     marginBottom: 20,
-    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   balanceAmount: {
     fontSize: 28,
     fontWeight: '700',
     color: '#00BCD4',
+  },
+  refreshBalanceButton: {
+    padding: 8,
+    backgroundColor: 'rgba(0, 188, 212, 0.1)',
+    borderRadius: 8,
   },
   studentInfo: {
     borderTopWidth: 1,

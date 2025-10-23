@@ -1,20 +1,39 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
+
+// Get the local network IP automatically when using Expo Go
+// This works for both Android and iOS on physical devices
+const getDeviceBaseUrl = () => {
+  // For Expo Go on physical devices, use the debuggerHost to get your computer's IP
+  const debuggerHost = Constants.expoConfig?.hostUri;
+  if (debuggerHost) {
+    // Extract IP from "192.168.1.10:8081" format
+    const ip = debuggerHost.split(':')[0];
+    return `http://${ip}:3000`;
+  }
+  return null;
+};
 
 // Determine sensible defaults for emulator/simulator vs device
 // - Android emulator: 10.0.2.2 maps to host localhost
 // - iOS simulator: localhost works
-// - Physical devices: set CASHLESS_API_URL to your machine IP (e.g., http://192.168.1.10:3000)
+// - Expo Go on physical device: automatically detect network IP
+// - Production: use environment variable
 const DEFAULT_BASE_URL = Platform.select({
-  ios: 'http://localhost:3000',
-  android: 'http://10.0.2.2:3000',
+  ios: getDeviceBaseUrl() || 'http://localhost:3000',
+  android: getDeviceBaseUrl() || 'http://10.0.2.2:3000',
   default: 'http://localhost:3000',
 });
 
 // Allow override via Expo config env or process.env
+// Priority: 1. Environment variable, 2. Expo extra config, 3. Auto-detected IP, 4. Default
 const BASE_URL =
   (typeof process !== 'undefined' && process.env && (process.env.CASHLESS_API_URL || process.env.EXPO_PUBLIC_CASHLESS_API_URL)) ||
+  Constants.expoConfig?.extra?.apiUrl ||
   DEFAULT_BASE_URL;
+
+console.log('📡 API Base URL:', BASE_URL);
 
 export const api = axios.create({
   baseURL: `${BASE_URL}/api`,
