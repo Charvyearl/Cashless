@@ -83,18 +83,19 @@ class Personnel {
   static async findAll(options = {}) {
     try {
       const { page = 1, limit = 10, is_active } = options;
-      const offset = (page - 1) * limit;
+      const safeLimit = Math.max(1, Number(limit) || 10);
+      const safePage = Math.max(1, Number(page) || 1);
+      const safeOffset = (safePage - 1) * safeLimit;
       
       let query = 'SELECT * FROM personnel WHERE 1=1';
       const params = [];
       
       if (is_active !== undefined) {
         query += ' AND is_active = ?';
-        params.push(is_active);
+        params.push(!!is_active);
       }
       
-      query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
-      params.push(limit, offset);
+      query += ` ORDER BY created_at DESC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
       
       const [rows] = await pool.execute(query, params);
       return rows.map(row => new Personnel(row));
