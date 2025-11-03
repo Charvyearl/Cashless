@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, CreditCardIcon, CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
-import { canteenOrdersAPI } from '../../services/api';
+import { canteenOrdersAPI, rfidAPI } from '../../services/api';
 
 interface Customer {
   id: number;
@@ -67,8 +67,8 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
     // Use the same polling approach as registration with timestamp check
     const pollForRFID = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/rfid/latest');
-        const data = await response.json();
+        const res = await rfidAPI.getLatest();
+        const data = res.data;
         
         if (data.success && data.data && data.data.rfid_card_id) {
           // Only accept RFID scans that happened AFTER we started scanning
