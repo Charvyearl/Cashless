@@ -19,7 +19,9 @@ const app = express();
 // CORS configuration (place BEFORE security middlewares to ensure preflight headers are set)
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://yourdomain.com']
+    ? [
+        'https://cashless-production-065d.up.railway.app'
+      ]
     : function (origin, callback) {
         // Allow requests with no origin (like mobile apps, Postman, etc.)
         if (!origin) return callback(null, true);
