@@ -17,33 +17,38 @@ const canteenOrderRoutes = require('./routes/canteenOrders');
 const app = express();
 
 // CORS configuration (place BEFORE security middlewares to ensure preflight headers are set)
+const allowedOrigins = [
+  'https://cashless-production-065d.up.railway.app'
+];
+
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production'
-    ? [
-        'https://cashless-production-065d.up.railway.app'
-      ]
-    : function (origin, callback) {
-        // Allow requests with no origin (like mobile apps, Postman, etc.)
-        if (!origin) return callback(null, true);
-        
-        // Allow localhost and local network IPs for development
-        const allowedPatterns = [
-          /^http:\/\/localhost(:\d+)?$/,
-          /^http:\/\/127\.0\.0\.1(:\d+)?$/,
-          /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/,  // Local network 192.168.x.x
-          /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/,  // Local network 10.x.x.x
-          /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}(:\d+)?$/,  // Local network 172.16-31.x.x
-        ];
-        
-        const isAllowed = allowedPatterns.some(pattern => pattern.test(origin));
-        if (isAllowed) {
-          callback(null, true);
-        } else {
-          console.warn('⚠️  CORS blocked origin:', origin);
-          callback(new Error('Not allowed by CORS'));
-        }
-      },
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, server-to-server)
+    if (!origin) return callback(null, true);
+
+    if (process.env.NODE_ENV === 'production') {
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      console.warn('⚠️  CORS blocked origin (prod):', origin);
+      return callback(new Error('Not allowed by CORS'));
+    }
+
+    // Development: allow localhost/LAN
+    const allowedPatterns = [
+      /^http:\/\/localhost(:\d+)?$/,
+      /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+      /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+      /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+      /^http:\/\/172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}(:\d+)?$/,
+    ];
+    const isAllowed = allowedPatterns.some((p) => p.test(origin));
+    if (isAllowed) return callback(null, true);
+    console.warn('⚠️  CORS blocked origin (dev):', origin);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
 };
 app.use(cors(corsOptions));
 // Explicitly handle preflight
