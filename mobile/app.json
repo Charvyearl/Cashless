@@ -29,9 +29,10 @@
     },
     "extra": {
       "eas": {
-        "projectId": "4532fa94-96d6-4ea8-9ff6-79c0dfe7b06c"
+        "projectId": "e33fe9de-62d1-4e99-ad12-bca78af804c1"
       },
-      "apiUrl": null
-    }
+      "apiUrl": "https://cashless-production.up.railway.app"
+    },
+    "owner": "korutesu12"
   }
 }

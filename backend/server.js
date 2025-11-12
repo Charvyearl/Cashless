@@ -18,6 +18,7 @@ const app = express();
 
 // CORS configuration (place BEFORE security middlewares to ensure preflight headers are set)
 const allowedOrigins = [
+  'https://cashless-production.up.railway.app',
   'https://cashless-production-065d.up.railway.app'
 ];
 
