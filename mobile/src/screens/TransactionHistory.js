@@ -29,13 +29,11 @@ export default function TransactionHistory({ scope, onTransactionUpdate } = {}) 
   const reload = async () => {
     setLoading(true);
     try {
-      const params = { limit: 20, status: 'completed' };
+      const params = { limit: 20 };
       if (scope) params.scope = scope;
       const res = await walletAPI.getTransactions(params);
       if (res?.success) {
-        const list = (res.data.transactions || []).filter(
-          (t) => String(t.status || '').toLowerCase() === 'completed'
-        );
+        const list = res.data.transactions || [];
         setTransactions(list);
         // Trigger balance update in parent component
         if (onTransactionUpdate) onTransactionUpdate();
