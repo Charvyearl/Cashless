@@ -5,6 +5,8 @@ import {
   Text,
   View,
   TouchableOpacity,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
 
 export default function TransactionHistory({ scope, onTransactionUpdate } = {}) {
@@ -109,26 +111,38 @@ export default function TransactionHistory({ scope, onTransactionUpdate } = {}) 
           )}
         </View>
       </View>
-      {showDetail && detail && (
-        <View style={styles.detailOverlay}>
-          <View style={styles.detailCard}>
-            <Text style={styles.detailTitle}>Transaction #{detail.transaction?.transaction_id}</Text>
-            <Text style={styles.detailMeta}>Date: {formatManila(detail.transaction?.transaction_date)}</Text>
-            <Text style={styles.detailMeta}>Total: ₱{Number(detail.transaction?.total_amount||0).toFixed(2)}</Text>
-            <View style={{ height: 8 }} />
-            <View style={{ gap: 8 }}>
-              {(detail.items || []).map((it) => (
-                <View key={it.transaction_item_id} style={styles.itemRow}>
-                  <Text style={styles.itemName}>{it.product_name}</Text>
-                  <Text style={styles.itemMeta}>x{it.quantity} @ ₱{Number(it.unit_price).toFixed(2)}</Text>
-                  <Text style={styles.itemSubtotal}>₱{Number(it.subtotal).toFixed(2)}</Text>
+      {detail && (
+        <Modal
+          visible={showDetail}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDetail(false)}
+        >
+          <TouchableWithoutFeedback onPress={() => setShowDetail(false)}>
+            <View style={styles.detailOverlay}>
+              <View
+                style={styles.detailCard}
+                onStartShouldSetResponder={() => true}
+              >
+                <Text style={styles.detailTitle}>Transaction #{detail.transaction?.transaction_id}</Text>
+                <Text style={styles.detailMeta}>Date: {formatManila(detail.transaction?.transaction_date)}</Text>
+                <Text style={styles.detailMeta}>Total: ₱{Number(detail.transaction?.total_amount||0).toFixed(2)}</Text>
+                <View style={{ height: 8 }} />
+                <View style={{ gap: 8 }}>
+                  {(detail.items || []).map((it) => (
+                    <View key={it.transaction_item_id} style={styles.itemRow}>
+                      <Text style={styles.itemName}>{it.product_name}</Text>
+                      <Text style={styles.itemMeta}>x{it.quantity} @ ₱{Number(it.unit_price).toFixed(2)}</Text>
+                      <Text style={styles.itemSubtotal}>₱{Number(it.subtotal).toFixed(2)}</Text>
+                    </View>
+                  ))}
                 </View>
-              ))}
+                <View style={{ height: 12 }} />
+                <Text style={styles.closeLink} onPress={() => setShowDetail(false)}>Close</Text>
+              </View>
             </View>
-            <View style={{ height: 12 }} />
-            <Text style={styles.closeLink} onPress={() => setShowDetail(false)}>Close</Text>
-          </View>
-        </View>
+          </TouchableWithoutFeedback>
+        </Modal>
       )}
     </View>
   );
