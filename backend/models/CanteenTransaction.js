@@ -97,8 +97,9 @@ class CanteenTransaction {
         params.push(status);
       }
       
-      query += ' ORDER BY t.transaction_date DESC LIMIT ? OFFSET ?';
-      params.push(limit, offset);
+      const safeLimit = Math.max(1, Math.floor(limit));
+      const safeOffset = Math.max(0, Math.floor(offset));
+      query += ` ORDER BY t.transaction_date DESC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
       
       const [rows] = await pool.execute(query, params);
       return rows.map(row => new CanteenTransaction(row));
