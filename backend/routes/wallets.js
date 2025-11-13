@@ -63,8 +63,10 @@ router.get('/summary', verifyToken, async (req, res) => {
 // Get transaction history
 router.get('/transactions', verifyToken, async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
+    const rawPage = Number(req.query.page);
+    const rawLimit = Number(req.query.limit);
+    const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+    const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 20;
     const offset = (page - 1) * limit;
 
     // Derive transactions from TRANSACTIONS table
@@ -79,8 +81,9 @@ router.get('/transactions', verifyToken, async (req, res) => {
       sql += ' AND status = ?';
       params.push(status);
     }
-    sql += ' ORDER BY transaction_date DESC LIMIT ? OFFSET ?';
-    params.push(limit, offset);
+    const safeLimit = Math.max(1, Math.floor(limit));
+    const safeOffset = Math.max(0, Math.floor(offset));
+    sql += ` ORDER BY transaction_date DESC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
     const [rows] = await pool.execute(sql, params);
     
     res.json({
