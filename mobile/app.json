@@ -29,10 +29,13 @@
     },
     "extra": {
       "eas": {
-        "projectId": "e33fe9de-62d1-4e99-ad12-bca78af804c1"
+        "projectId": "6ac51978-f632-486f-835f-65b0cb4ea064"
       },
       "apiUrl": "https://cashless-production.up.railway.app"
     },
-    "owner": "korutesu12"
+    "owner": "korutesu12",
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

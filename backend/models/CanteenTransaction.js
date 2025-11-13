@@ -54,7 +54,11 @@ class CanteenTransaction {
 
   static async findAll(options = {}) {
     try {
-      const { page = 1, limit = 50, startDate, endDate, status, userId, personnelId } = options;
+      const rawPage = Number(options.page);
+      const rawLimit = Number(options.limit);
+      const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
+      const limit = Number.isFinite(rawLimit) && rawLimit > 0 ? rawLimit : 50;
+      const { startDate, endDate, status, userId, personnelId } = options;
       const offset = (page - 1) * limit;
       
       let query = `

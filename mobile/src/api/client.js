@@ -26,12 +26,39 @@ const DEFAULT_BASE_URL = Platform.select({
   default: 'http://localhost:3000',
 });
 
-// Allow override via Expo config env or process.env
-// Priority: 1. Environment variable, 2. Expo extra config, 3. Auto-detected IP, 4. Default
-const BASE_URL =
-  (typeof process !== 'undefined' && process.env && (process.env.CASHLESS_API_URL || process.env.EXPO_PUBLIC_CASHLESS_API_URL)) ||
-  Constants.expoConfig?.extra?.apiUrl ||
-  DEFAULT_BASE_URL;
+// Determine environment (Expo defines __DEV__ globally)
+const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
+
+// Normalize environment variable overrides (highest priority)
+const envApiUrl = (() => {
+  if (typeof process === 'undefined' || !process.env) return '';
+  const candidates = [process.env.CASHLESS_API_URL, process.env.EXPO_PUBLIC_CASHLESS_API_URL];
+  const found = candidates.find((value) => typeof value === 'string' && value.trim().length > 0);
+  return found ? found.trim() : '';
+})();
+
+// Read Expo extra config (supports separate prod/dev overrides)
+const extraConfig = Constants.expoConfig?.extra ?? {};
+const extraProdApiUrl =
+  typeof extraConfig.apiUrl === 'string' && extraConfig.apiUrl.trim().length > 0
+    ? extraConfig.apiUrl.trim()
+    : '';
+const extraDevApiUrl =
+  typeof extraConfig.devApiUrl === 'string' && extraConfig.devApiUrl.trim().length > 0
+    ? extraConfig.devApiUrl.trim()
+    : '';
+const useProdApiInDev = Boolean(extraConfig.useProdApiInDev);
+
+// Resolve preferred extra URL: dev-specific first, optional opt-in to prod URL during dev builds
+const resolvedExtraApiUrl = isDev
+  ? (extraDevApiUrl || (useProdApiInDev ? extraProdApiUrl : ''))
+  : extraProdApiUrl;
+
+// Final priority order:
+// 1) explicit env override
+// 2) expo extra override (dev/prod aware)
+// 3) automatic detection / platform default
+const BASE_URL = envApiUrl || resolvedExtraApiUrl || DEFAULT_BASE_URL;
 
 console.log('📡 API Base URL:', BASE_URL);
 
@@ -74,7 +101,14 @@ export const walletAPI = {
     return res.data;
   },
   // Server-Sent Events stream for live updates (development use)
+  // Note: EventSource is only available in web environments, not React Native
   streamTransactions: (onMessage, onError) => {
+    // Check if EventSource is available (web only)
+    if (typeof EventSource === 'undefined') {
+      if (onError) onError(new Error('EventSource not available in React Native'));
+      return () => {};
+    }
+    
     try {
       // Include token via query param to avoid CORS preflight complexity
       const token = (api.defaults.headers.common.Authorization || '').replace('Bearer ', '');
@@ -86,7 +120,7 @@ export const walletAPI = {
       es.onerror = (e) => { onError && onError(e); es.close(); };
       return () => es.close();
     } catch (e) {
-      onError && onError(e);
+      if (onError) onError(e);
       return () => {};
     }
   },
