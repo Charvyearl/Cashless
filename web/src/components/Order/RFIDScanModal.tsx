@@ -43,9 +43,10 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
   const [transactionId, setTransactionId] = useState<number | null>(null);
-  const [step, setStep] = useState<'scan' | 'confirm' | 'processing' | 'success' | 'error'>('scan');
+  const [step, setStep] = useState<'scan' | 'confirm' | 'pin' | 'processing' | 'success' | 'error'>('scan');
   const [isScanning, setIsScanning] = useState(false);
   const [scanInterval, setScanInterval] = useState<NodeJS.Timeout | null>(null);
+  const [pin, setPin] = useState('');
 
   const stopScanning = () => {
     if (scanInterval) {
@@ -111,6 +112,7 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
       setRfidInput('');
       setCustomer(null);
       setError('');
+      setPin('');
       setStep('scan');
       setTransactionId(existingTransactionId ?? null);
       setIsScanning(false);
@@ -191,41 +193,8 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
     }
   };
 
-  const completePayment = async () => {
-    if (!customer || !orderData || !transactionId) return;
 
-    setIsProcessing(true);
-    setStep('processing');
-
-    try {
-      const response = await canteenOrdersAPI.completeOrder(transactionId, {
-        customer_rfid: customer.rfid_card_id
-      });
-
-      if (response.data.success) {
-        setStep('success');
-        setTimeout(() => {
-          onPaymentComplete(response.data.data);
-          onClose();
-        }, 2000);
-      } else {
-        setError(response.data.message || 'Payment failed');
-        setStep('error');
-      }
-    } catch (err: any) {
-      console.error('Payment error:', err);
-      if (err.response) {
-        setError(err.response.data.message || 'Payment failed');
-      } else {
-        setError('Payment processing failed. Please try again.');
-      }
-      setStep('error');
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const handleConfirmPayment = async () => {
+  const handleConfirmPayment = () => {
     if (!customer || !orderData) return;
     
     // Prevent multiple clicks
@@ -237,8 +206,25 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
       return;
     }
 
+    // Move to PIN confirmation step
+    setStep('pin');
+    setError('');
+  };
+
+  const handlePinSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!customer || !orderData) return;
+    
+    // Validate PIN format
+    if (!/^\d{4}$/.test(pin)) {
+      setError('PIN must be exactly 4 digits');
+      return;
+    }
+
     setIsProcessing(true);
     setStep('processing');
+    setError('');
 
     try {
       let txId = existingTransactionId;
@@ -249,9 +235,10 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
         setTransactionId(newTransactionId);
       }
       
-      // Complete the payment with the transaction ID
+      // Complete the payment with the transaction ID and PIN
       const response = await canteenOrdersAPI.completeOrder(Number(txId), {
-        customer_rfid: customer.rfid_card_id
+        customer_rfid: customer.rfid_card_id,
+        pin: pin
       });
 
       if (response.data.success) {
@@ -282,6 +269,7 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
     setCustomer(null);
     setError('');
     setRfidInput('');
+    setPin('');
     setTransactionId(null);
   };
 
@@ -295,6 +283,7 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
           <h2 className="text-xl font-semibold text-gray-900">
             {step === 'scan' && (isScanning ? 'Scanning RFID Card...' : 'Scan RFID Card')}
             {step === 'confirm' && 'Confirm Payment'}
+            {step === 'pin' && 'Enter PIN'}
             {step === 'processing' && 'Processing Payment'}
             {step === 'success' && 'Payment Successful'}
             {step === 'error' && 'Payment Failed'}
@@ -448,9 +437,85 @@ const RFIDScanModal: React.FC<RFIDScanModalProps> = ({
                   className="flex-1 text-white py-4 px-6 rounded-md disabled:bg-red-500 disabled:cursor-not-allowed font-medium border-0"
                   style={{ backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
                 >
-                  {isProcessing ? 'Processing...' : customer.balance < orderData.total_amount ? 'Insufficient Balance' : 'Confirm Payment'}
+                  {isProcessing ? 'Processing...' : customer.balance < orderData.total_amount ? 'Insufficient Balance' : 'Continue to PIN'}
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* PIN Confirmation Step */}
+          {step === 'pin' && customer && orderData && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h3 className="font-medium text-gray-900 mb-2">Payment Summary</h3>
+                <p className="text-sm text-gray-600">
+                  Customer: {customer.first_name} {customer.last_name}
+                </p>
+                <p className="text-sm text-gray-600">
+                  Amount: <span className="font-medium text-blue-600">{currency(orderData.total_amount)}</span>
+                </p>
+                <p className="text-sm text-gray-600">
+                  Remaining Balance: <span className="font-medium text-green-600">{currency(customer.balance - orderData.total_amount)}</span>
+                </p>
+              </div>
+
+              <form onSubmit={handlePinSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Enter 4-Digit PIN to Confirm Payment
+                  </label>
+                  <input
+                    type="password"
+                    value={pin}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 4);
+                      setPin(value);
+                    }}
+                    placeholder="0000"
+                    maxLength={4}
+                    pattern="\d{4}"
+                    className="w-full px-4 py-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-center text-2xl font-mono tracking-widest"
+                    style={{
+                      borderColor: '#D1D5DB'
+                    }}
+                    autoFocus
+                    required
+                    inputMode="numeric"
+                  />
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Enter your 4-digit PIN to authorize this payment
+                  </p>
+                </div>
+
+                {error && (
+                  <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-md">
+                    {error}
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStep('confirm');
+                      setPin('');
+                      setError('');
+                    }}
+                    className="flex-1 text-white py-4 px-6 rounded-md font-medium border-0"
+                    style={{ backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={pin.length !== 4 || isProcessing}
+                    className="flex-1 text-white py-4 px-6 rounded-md disabled:bg-gray-400 disabled:cursor-not-allowed font-medium border-0"
+                    style={{ backgroundColor: '#5FA9FF', border: 'none', margin: '0 8px' }}
+                  >
+                    {isProcessing ? 'Processing...' : 'Confirm Payment'}
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 

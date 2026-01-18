@@ -11,6 +11,7 @@ class Personnel {
     this.created_at = data.created_at;
     this.email = data.email;
     this.password = data.password;
+    this.pin = data.pin;
     this.is_active = data.is_active;
     this.updated_at = data.updated_at;
   }
@@ -21,16 +22,23 @@ class Personnel {
       // Hash password
       const hashedPassword = await bcrypt.hash(personnelData.password, 10);
       
+      // Hash PIN if provided
+      let hashedPin = null;
+      if (personnelData.pin) {
+        hashedPin = await bcrypt.hash(personnelData.pin, 10);
+      }
+      
       const [result] = await pool.execute(
-        `INSERT INTO personnel (rfid_card_id, first_name, last_name, balance, email, password) 
-         VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO personnel (rfid_card_id, first_name, last_name, balance, email, password, pin) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           personnelData.rfid_card_id,
           personnelData.first_name,
           personnelData.last_name,
           personnelData.balance || 0.00,
           personnelData.email || null,
-          hashedPassword
+          hashedPassword,
+          hashedPin
         ]
       );
 
@@ -160,6 +168,35 @@ class Personnel {
   async verifyPassword(password) {
     try {
       return await bcrypt.compare(password, this.password);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Verify PIN
+  async verifyPin(pin) {
+    try {
+      if (!this.pin) {
+        return false; // No PIN set
+      }
+      return await bcrypt.compare(pin, this.pin);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Update PIN
+  async updatePin(newPin) {
+    try {
+      const hashedPin = await bcrypt.hash(newPin, 10);
+      
+      await pool.execute(
+        'UPDATE personnel SET pin = ?, updated_at = CURRENT_TIMESTAMP WHERE personnel_id = ?',
+        [hashedPin, this.personnel_id]
+      );
+      
+      this.pin = hashedPin;
+      return this;
     } catch (error) {
       throw error;
     }

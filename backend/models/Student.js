@@ -11,6 +11,7 @@ class Student {
     this.created_at = data.created_at;
     this.email = data.email;
     this.password = data.password;
+    this.pin = data.pin;
     this.is_active = data.is_active;
     this.updated_at = data.updated_at;
   }
@@ -21,16 +22,23 @@ class Student {
       // Hash password
       const hashedPassword = await bcrypt.hash(studentData.password, 10);
       
+      // Hash PIN if provided
+      let hashedPin = null;
+      if (studentData.pin) {
+        hashedPin = await bcrypt.hash(studentData.pin, 10);
+      }
+      
       const [result] = await pool.execute(
-        `INSERT INTO students (rfid_card_id, first_name, last_name, balance, email, password) 
-         VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO students (rfid_card_id, first_name, last_name, balance, email, password, pin) 
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           studentData.rfid_card_id,
           studentData.first_name,
           studentData.last_name,
           studentData.balance || 0.00,
           studentData.email || null,
-          hashedPassword
+          hashedPassword,
+          hashedPin
         ]
       );
 
@@ -160,6 +168,35 @@ class Student {
   async verifyPassword(password) {
     try {
       return await bcrypt.compare(password, this.password);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Verify PIN
+  async verifyPin(pin) {
+    try {
+      if (!this.pin) {
+        return false; // No PIN set
+      }
+      return await bcrypt.compare(pin, this.pin);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  // Update PIN
+  async updatePin(newPin) {
+    try {
+      const hashedPin = await bcrypt.hash(newPin, 10);
+      
+      await pool.execute(
+        'UPDATE students SET pin = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ?',
+        [hashedPin, this.user_id]
+      );
+      
+      this.pin = hashedPin;
+      return this;
     } catch (error) {
       throw error;
     }

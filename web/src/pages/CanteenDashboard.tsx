@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { menuAPI, canteenOrdersAPI, transactionsAPI } from '../services/api';
-import { FunnelIcon, ArrowPathIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { FunnelIcon, ArrowPathIcon, PlusIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/outline';
 
 type InventoryStatus = 'available' | 'out_of_stock' | 'disabled';
 
@@ -376,10 +376,16 @@ const CanteenDashboard: React.FC = () => {
             <div className="p-4 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-900">Menu & Inventory</h2>
-                <button onClick={() => navigate('/canteen/add')} className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-md border-0" style={{ backgroundColor: '#5FA9FF', border: 'none' }}>
-                  <PlusIcon className="w-5 h-5" />
-                  Add Item
-                </button>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => navigate('/canteen/inventory')} className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-md border-0" style={{ backgroundColor: '#10B981', border: 'none', marginRight: '8px' }}>
+                    <ClipboardDocumentListIcon className="w-5 h-5" />
+                    Inventory Records
+                  </button>
+                  <button onClick={() => navigate('/canteen/add')} className="inline-flex items-center gap-2 px-4 py-2 text-white rounded-md border-0" style={{ backgroundColor: '#5FA9FF', border: 'none', marginLeft: '8px' }}>
+                    <PlusIcon className="w-5 h-5" />
+                    Add Item
+                  </button>
+                </div>
               </div>
               
               <div className="flex gap-4 my-4">

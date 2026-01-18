@@ -131,6 +131,7 @@ export interface CreateStudentRequest {
   last_name: string;
   email?: string;
   password: string;
+  pin: string;
   balance?: number;
 }
 
@@ -140,6 +141,7 @@ export interface CreatePersonnelRequest {
   last_name: string;
   email?: string;
   password: string;
+  pin: string;
   balance?: number;
 }
 

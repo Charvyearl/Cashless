@@ -7,7 +7,13 @@ import {
   PlusIcon,
   EyeIcon,
   AcademicCapIcon,
-  UserIcon
+  UserIcon,
+  ChartPieIcon,
+  UserGroupIcon,
+  UserPlusIcon,
+  CalendarIcon,
+  ClockIcon,
+  ArrowRightIcon
 } from '@heroicons/react/24/outline';
 import StatsCard from '../components/Dashboard/StatsCard';
 import { canteenOrdersAPI, adminAPI, dashboardAPI } from '../services/api';
@@ -405,73 +411,109 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Financial Reports */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="text-md font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <h3 className="text-md font-semibold text-gray-900 mb-6 flex items-center">
               <ChartBarIcon className="h-5 w-5 mr-2 text-green-600" />
               Financial Reports
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <button 
                  onClick={() => navigate('/admin/reports/revenue-summary')}
-                 className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+                 className="group relative bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6 hover:border-green-400 hover:shadow-lg transition-all duration-300 text-left transform hover:-translate-y-1"
                >
-                 <h4 className="font-medium text-gray-900">Revenue Summary</h4>
-                 <p className="text-sm text-gray-500 mt-1">Total revenue and trends</p>
+                 <div className="flex items-start justify-between mb-3">
+                   <div className="bg-green-100 p-3 rounded-lg group-hover:bg-green-200 transition-colors">
+                     <ChartBarIcon className="h-6 w-6 text-green-600" />
+                   </div>
+                   <ArrowRightIcon className="h-5 w-5 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                 </div>
+                 <h4 className="font-semibold text-gray-900 text-lg mb-2">Revenue Summary</h4>
+                 <p className="text-sm text-gray-600">Total revenue and trends</p>
                </button>
                <button 
                  onClick={() => navigate('/admin/reports/transaction-analysis')}
-                 className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+                 className="group relative bg-gradient-to-br from-blue-50 to-cyan-50 border-2 border-blue-200 rounded-xl p-6 hover:border-blue-400 hover:shadow-lg transition-all duration-300 text-left transform hover:-translate-y-1"
                >
-                 <h4 className="font-medium text-gray-900">Transaction Analysis</h4>
-                 <p className="text-sm text-gray-500 mt-1">Transaction patterns and insights</p>
+                 <div className="flex items-start justify-between mb-3">
+                   <div className="bg-blue-100 p-3 rounded-lg group-hover:bg-blue-200 transition-colors">
+                     <ChartPieIcon className="h-6 w-6 text-blue-600" />
+                   </div>
+                   <ArrowRightIcon className="h-5 w-5 text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                 </div>
+                 <h4 className="font-semibold text-gray-900 text-lg mb-2">Transaction Analysis</h4>
+                 <p className="text-sm text-gray-600">Transaction patterns and insights</p>
                </button>
             </div>
           </div>
 
           {/* User Reports */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="text-md font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <h3 className="text-md font-semibold text-gray-900 mb-6 flex items-center">
               <UsersIcon className="h-5 w-5 mr-2 text-blue-600" />
               User Reports
             </h3>
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <button 
                  onClick={() => navigate('/admin/reports/user-activity')}
-                 className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+                 className="group relative bg-gradient-to-br from-indigo-50 to-purple-50 border-2 border-indigo-200 rounded-xl p-6 hover:border-indigo-400 hover:shadow-lg transition-all duration-300 text-left transform hover:-translate-y-1"
                >
-                 <h4 className="font-medium text-gray-900">Activity Summary</h4>
-                 <p className="text-sm text-gray-500 mt-1">User activity and engagement</p>
+                 <div className="flex items-start justify-between mb-3">
+                   <div className="bg-indigo-100 p-3 rounded-lg group-hover:bg-indigo-200 transition-colors">
+                     <UserGroupIcon className="h-6 w-6 text-indigo-600" />
+                   </div>
+                   <ArrowRightIcon className="h-5 w-5 text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                 </div>
+                 <h4 className="font-semibold text-gray-900 text-lg mb-2">Activity Summary</h4>
+                 <p className="text-sm text-gray-600">User activity and engagement</p>
                </button>
                <button 
                  onClick={() => navigate('/admin/reports/user-reports')}
-                 className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+                 className="group relative bg-gradient-to-br from-pink-50 to-rose-50 border-2 border-pink-200 rounded-xl p-6 hover:border-pink-400 hover:shadow-lg transition-all duration-300 text-left transform hover:-translate-y-1"
                >
-                 <h4 className="font-medium text-gray-900">Registration Trends</h4>
-                 <p className="text-sm text-gray-500 mt-1">New user signups over time</p>
+                 <div className="flex items-start justify-between mb-3">
+                   <div className="bg-pink-100 p-3 rounded-lg group-hover:bg-pink-200 transition-colors">
+                     <UserPlusIcon className="h-6 w-6 text-pink-600" />
+                   </div>
+                   <ArrowRightIcon className="h-5 w-5 text-pink-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                 </div>
+                 <h4 className="font-semibold text-gray-900 text-lg mb-2">Registration Trends</h4>
+                 <p className="text-sm text-gray-600">New user signups over time</p>
                </button>
              </div>
           </div>
 
           {/* Operational Reports */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="text-md font-semibold text-gray-900 mb-4 flex items-center">
+          <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <h3 className="text-md font-semibold text-gray-900 mb-6 flex items-center">
               <EyeIcon className="h-5 w-5 mr-2 text-purple-600" />
               Operational Reports
             </h3>
-             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <button 
                  onClick={() => navigate('/admin/reports/daily-summary')}
-                 className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+                 className="group relative bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-xl p-6 hover:border-amber-400 hover:shadow-lg transition-all duration-300 text-left transform hover:-translate-y-1"
                >
-                 <h4 className="font-medium text-gray-900">Daily Summary</h4>
-                 <p className="text-sm text-gray-500 mt-1">Today's performance overview</p>
+                 <div className="flex items-start justify-between mb-3">
+                   <div className="bg-amber-100 p-3 rounded-lg group-hover:bg-amber-200 transition-colors">
+                     <CalendarIcon className="h-6 w-6 text-amber-600" />
+                   </div>
+                   <ArrowRightIcon className="h-5 w-5 text-amber-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                 </div>
+                 <h4 className="font-semibold text-gray-900 text-lg mb-2">Daily Summary</h4>
+                 <p className="text-sm text-gray-600">Today's performance overview</p>
                </button>
                <button 
                  onClick={() => navigate('/admin/reports/weekly-performance')}
-                 className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 text-left"
+                 className="group relative bg-gradient-to-br from-violet-50 to-purple-50 border-2 border-violet-200 rounded-xl p-6 hover:border-violet-400 hover:shadow-lg transition-all duration-300 text-left transform hover:-translate-y-1"
                >
-                 <h4 className="font-medium text-gray-900">Weekly Performance</h4>
-                 <p className="text-sm text-gray-500 mt-1">Weekly trends and peak hours</p>
+                 <div className="flex items-start justify-between mb-3">
+                   <div className="bg-violet-100 p-3 rounded-lg group-hover:bg-violet-200 transition-colors">
+                     <ClockIcon className="h-6 w-6 text-violet-600" />
+                   </div>
+                   <ArrowRightIcon className="h-5 w-5 text-violet-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                 </div>
+                 <h4 className="font-semibold text-gray-900 text-lg mb-2">Weekly Performance</h4>
+                 <p className="text-sm text-gray-600">Weekly trends and peak hours</p>
                </button>
              </div>
           </div>

@@ -36,6 +36,12 @@
     "owner": "korutesu12",
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/6ac51978-f632-486f-835f-65b0cb4ea064"
+    }
   }
 }

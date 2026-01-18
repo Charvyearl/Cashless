@@ -3,9 +3,10 @@ const router = express.Router();
 // const { MenuCategory, MenuItem } = require('../models/Menu'); // OLD MODELS - REMOVED
 const Product = require('../models/Product');
 const Category = require('../models/Category');
+const InventoryRecord = require('../models/InventoryRecord');
 const { verifyToken, requireStaff, optionalAuth } = require('../middleware/auth');
 const { validate } = require('../utils/validation');
-const { menuSchemas, productSchemas } = require('../utils/validation');
+const { menuSchemas, productSchemas, inventoryRecordSchemas } = require('../utils/validation');
 
 // Get full menu (public) - DISABLED (using products instead)
 // router.get('/', optionalAuth, async (req, res) => {
@@ -332,6 +333,102 @@ router.delete('/products/:id', verifyToken, requireStaff, async (req, res) => {
   } catch (error) {
     console.error('Delete product error:', error);
     res.status(500).json({ success: false, message: 'Failed to delete product', error: error.message });
+  }
+});
+
+// ===== INVENTORY RECORDS ENDPOINTS =====
+
+// Create inventory record (staff/admin only)
+router.post('/inventory-records', verifyToken, requireStaff, validate(inventoryRecordSchemas.create), async (req, res) => {
+  try {
+    const { pool } = require('../config/database');
+    
+    // Get user info from token - verify personnel exists in database
+    let userId = null;
+    let personnelId = null;
+    
+    if (req.user.user_type === 'student') {
+      userId = req.user.id;
+    } else if (req.user.user_type === 'staff' || req.user.user_type === 'admin') {
+      // Verify the personnel_id actually exists in the personnel table
+      try {
+        const [personnelRows] = await pool.execute(
+          'SELECT personnel_id FROM personnel WHERE personnel_id = ? AND is_active = TRUE',
+          [req.user.id]
+        );
+        if (personnelRows.length > 0) {
+          personnelId = req.user.id;
+        } else {
+          // Personnel doesn't exist, set to null (will be ignored by foreign key)
+          console.warn(`Personnel ID ${req.user.id} not found in personnel table, setting personnel_id to null`);
+          personnelId = null;
+        }
+      } catch (error) {
+        console.error('Error checking personnel:', error);
+        personnelId = null;
+      }
+    }
+    
+    const recordData = {
+      ...req.body,
+      user_id: userId,
+      personnel_id: personnelId
+    };
+    
+    const record = await InventoryRecord.create(recordData);
+    res.status(201).json({ success: true, message: 'Inventory record created', data: record });
+  } catch (error) {
+    console.error('Create inventory record error:', error);
+    res.status(500).json({ success: false, message: 'Failed to create inventory record', error: error.message });
+  }
+});
+
+// Get all inventory records (staff/admin only)
+router.get('/inventory-records', verifyToken, requireStaff, async (req, res) => {
+  try {
+    const { product_id, user_id, personnel_id, start_date, end_date, page, limit } = req.query;
+    
+    const options = {
+      product_id: product_id ? parseInt(product_id) : undefined,
+      user_id: user_id ? parseInt(user_id) : undefined,
+      personnel_id: personnel_id ? parseInt(personnel_id) : undefined,
+      start_date: start_date || undefined,
+      end_date: end_date || undefined,
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 100
+    };
+    
+    const records = await InventoryRecord.findAll(options);
+    res.json({ success: true, data: records });
+  } catch (error) {
+    console.error('Get inventory records error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get inventory records', error: error.message });
+  }
+});
+
+// Get inventory record by ID (staff/admin only)
+router.get('/inventory-records/:id', verifyToken, requireStaff, async (req, res) => {
+  try {
+    const record = await InventoryRecord.findById(req.params.id);
+    if (!record) {
+      return res.status(404).json({ success: false, message: 'Inventory record not found' });
+    }
+    res.json({ success: true, data: record });
+  } catch (error) {
+    console.error('Get inventory record error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get inventory record', error: error.message });
+  }
+});
+
+// Get inventory records by product ID (staff/admin only)
+router.get('/products/:id/inventory-records', verifyToken, requireStaff, async (req, res) => {
+  try {
+    const { limit } = req.query;
+    const records = await InventoryRecord.findByProductId(req.params.id, { limit: limit ? parseInt(limit) : undefined });
+    res.json({ success: true, data: records });
+  } catch (error) {
+    console.error('Get product inventory records error:', error);
+    res.status(500).json({ success: false, message: 'Failed to get product inventory records', error: error.message });
   }
 });
 

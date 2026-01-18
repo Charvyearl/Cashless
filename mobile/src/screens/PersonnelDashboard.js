@@ -10,6 +10,7 @@ import {
   ScrollView,
   Modal,
   Animated,
+  TextInput,
 } from 'react-native';
 import { Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -245,7 +246,26 @@ export default function PersonnelDashboard({ onLogout, user, initialBalance = 0 
                       >
                         <Text style={styles.qtyBtnText}>-</Text>
                       </TouchableOpacity>
-                      <Text style={styles.qtyText}>{item.quantity}</Text>
+                      <TextInput
+                        style={styles.qtyInput}
+                        value={item.quantity.toString()}
+                        onChangeText={(text) => {
+                          // Only allow numbers
+                          const numericValue = text.replace(/[^0-9]/g, '');
+                          if (numericValue === '') {
+                            // If empty, set to 1
+                            setCart((prev)=>prev.map(p=>p.product_id===item.product_id?{...p,quantity:1}:p));
+                          } else {
+                            const numValue = parseInt(numericValue, 10);
+                            // Ensure minimum of 1
+                            const finalValue = Math.max(1, numValue);
+                            setCart((prev)=>prev.map(p=>p.product_id===item.product_id?{...p,quantity:finalValue}:p));
+                          }
+                        }}
+                        keyboardType="numeric"
+                        selectTextOnFocus
+                        maxLength={3}
+                      />
                       <TouchableOpacity
                         style={styles.qtyBtn}
                         onPress={() => setCart((prev)=>prev.map(p=>p.product_id===item.product_id?{...p,quantity:p.quantity+1}:p))}
@@ -557,6 +577,19 @@ const styles = StyleSheet.create({
     minWidth: 20,
     textAlign: 'center',
     color: '#333',
+  },
+  qtyInput: {
+    minWidth: 50,
+    height: 32,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 6,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    backgroundColor: '#fff',
+    paddingHorizontal: 8,
   },
   removeText: {
     color: '#c62828',

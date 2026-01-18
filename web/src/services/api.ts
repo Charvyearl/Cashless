@@ -153,6 +153,19 @@ export const menuAPI = {
     api.patch(`/menu/products/${id}/availability`),
   deleteProduct: (id: number) =>
     api.delete(`/menu/products/${id}`),
+  
+  // Inventory Records
+  createInventoryRecord: (data: { product_id: number; change_type: 'add' | 'adjust' | 'deduct'; quantity_change: number; previous_stock: number; new_stock: number; notes?: string }) =>
+    api.post('/menu/inventory-records', data),
+  
+  getInventoryRecords: (params?: { product_id?: number; user_id?: number; personnel_id?: number; start_date?: string; end_date?: string; page?: number; limit?: number }) =>
+    api.get('/menu/inventory-records', { params }),
+  
+  getInventoryRecord: (id: number) =>
+    api.get(`/menu/inventory-records/${id}`),
+  
+  getProductInventoryRecords: (productId: number, params?: { limit?: number }) =>
+    api.get(`/menu/products/${productId}/inventory-records`, { params }),
 };
 
 // Transactions API
@@ -253,7 +266,7 @@ export const canteenOrdersAPI = {
   createOrder: (data: { items: Array<{ product_id: number; quantity: number }>; customer_rfid?: string }) =>
     api.post('/canteen-orders/create', data),
   
-  completeOrder: (transactionId: number, data: { customer_rfid: string }) =>
+  completeOrder: (transactionId: number, data: { customer_rfid: string; pin: string }) =>
     api.post(`/canteen-orders/${transactionId}/complete`, data),
   
   getOrders: (params?: { page?: number; limit?: number; start_date?: string; end_date?: string; status?: string; user_id?: number; personnel_id?: number }) =>

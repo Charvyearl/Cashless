@@ -115,12 +115,27 @@ router.post('/create', verifyToken, async (req, res) => {
 router.post('/:transactionId/complete', verifyToken, async (req, res) => {
   try {
     const { transactionId } = req.params;
-    const { customer_rfid } = req.body;
+    const { customer_rfid, pin } = req.body;
 
     if (!customer_rfid) {
       return res.status(400).json({
         success: false,
         message: 'Customer RFID is required'
+      });
+    }
+
+    if (!pin) {
+      return res.status(400).json({
+        success: false,
+        message: 'PIN is required for payment confirmation'
+      });
+    }
+
+    // Validate PIN format
+    if (!/^\d{4}$/.test(pin)) {
+      return res.status(400).json({
+        success: false,
+        message: 'PIN must be exactly 4 digits'
       });
     }
 
@@ -177,6 +192,32 @@ router.post('/:transactionId/complete', verifyToken, async (req, res) => {
       });
     }
 
+    // Verify PIN
+    const Student = require('../models/Student');
+    const Personnel = require('../models/Personnel');
+    let customerModel = null;
+    
+    if (customerType === 'user') {
+      customerModel = await Student.findById(customerId);
+    } else {
+      customerModel = await Personnel.findById(customerId);
+    }
+
+    if (!customerModel) {
+      return res.status(404).json({
+        success: false,
+        message: 'Customer account not found'
+      });
+    }
+
+    const isPinValid = await customerModel.verifyPin(pin);
+    if (!isPinValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid PIN. Please try again.'
+      });
+    }
+
     // Check customer balance
     if (customer.balance < transaction.total_amount) {
       return res.status(400).json({
@@ -187,6 +228,32 @@ router.post('/:transactionId/complete', verifyToken, async (req, res) => {
           available: customer.balance
         }
       });
+    }
+
+    // Check stock availability before processing
+    const items = await transaction.getTransactionItems();
+    for (const item of items) {
+      const product = await Product.findById(item.product_id);
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: `Product with ID ${item.product_id} not found`
+        });
+      }
+
+      if (!product.is_available) {
+        return res.status(400).json({
+          success: false,
+          message: `Product ${product.product_name} is not available`
+        });
+      }
+
+      if (product.stock_quantity < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for ${product.product_name}. Available: ${product.stock_quantity}, Required: ${item.quantity}`
+        });
+      }
     }
 
     // Update transaction with customer info
@@ -217,7 +284,6 @@ router.post('/:transactionId/complete', verifyToken, async (req, res) => {
     }
 
     // Update product stock
-    const items = await transaction.getTransactionItems();
     for (const item of items) {
       await pool.execute(
         'UPDATE PRODUCT SET stock_quantity = stock_quantity - ? WHERE product_id = ?',
@@ -457,6 +523,42 @@ router.patch('/:transactionId/status', verifyToken, async (req, res) => {
     const transaction = await CanteenTransaction.findById(transactionId);
     if (!transaction) {
       return res.status(404).json({ success: false, message: 'Transaction not found' });
+    }
+
+    // If status is being changed to 'completed', check stock availability
+    if (status === 'completed' && transaction.status !== 'completed') {
+      const items = await transaction.getTransactionItems();
+      for (const item of items) {
+        const product = await Product.findById(item.product_id);
+        if (!product) {
+          return res.status(404).json({
+            success: false,
+            message: `Product with ID ${item.product_id} not found`
+          });
+        }
+
+        if (!product.is_available) {
+          return res.status(400).json({
+            success: false,
+            message: `Product ${product.product_name} is not available`
+          });
+        }
+
+        if (product.stock_quantity < item.quantity) {
+          return res.status(400).json({
+            success: false,
+            message: `Insufficient stock for ${product.product_name}. Available: ${product.stock_quantity}, Required: ${item.quantity}`
+          });
+        }
+      }
+
+      // Deduct stock when completing the transaction
+      for (const item of items) {
+        await pool.execute(
+          'UPDATE PRODUCT SET stock_quantity = stock_quantity - ? WHERE product_id = ?',
+          [item.quantity, item.product_id]
+        );
+      }
     }
 
     await transaction.updateStatus(status);

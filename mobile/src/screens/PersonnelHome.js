@@ -93,8 +93,40 @@ export default function PersonnelHome({ onAddItem }) {
     );
   };
 
+  // Filter items based on search query
+  const filteredItems = items.filter((item) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    const name = (item.name || item.product_name || '').toLowerCase();
+    const description = (item.description || '').toLowerCase();
+    return name.includes(query) || description.includes(query);
+  });
+
   return (
     <View style={styles.container}>
+      {/* Search Bar */}
+      <View style={styles.searchBarContainer}>
+        <View style={styles.searchBar}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search products..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholderTextColor="#999"
+          />
+          {searchQuery.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setSearchQuery('')}
+              style={styles.clearButton}
+            >
+              <Text style={styles.clearButtonText}>✕</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+
+      {/* Category Chips */}
       <View style={styles.searchContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
           <TouchableOpacity
@@ -119,15 +151,19 @@ export default function PersonnelHome({ onAddItem }) {
 
       {loading ? (
         <Text>Loading...</Text>
-      ) : items.length === 0 ? (
-        <Text>No items available</Text>
+      ) : filteredItems.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>
+            {searchQuery.trim() ? `No products found for "${searchQuery}"` : 'No items available'}
+          </Text>
+        </View>
       ) : (
         <ScrollView
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingBottom: 180, gap: 12 }}
           showsVerticalScrollIndicator={false}
         >
-          {items.map((item) => (
+          {filteredItems.map((item) => (
             <View key={item.id || item.product_id} style={styles.menuItemCard}>
               <View style={styles.menuItemHeader}>
                 <Text style={styles.menuItemName}>{item.name || item.product_name}</Text>
@@ -162,30 +198,58 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
-  searchContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    gap: 10,
+  searchBarContainer: {
+    marginBottom: 16,
   },
   searchBar: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'white',
-    borderRadius: 10,
+    borderRadius: 12,
     paddingHorizontal: 15,
     paddingVertical: 12,
     borderWidth: 1,
     borderColor: '#e0e0e0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
   },
   searchIcon: {
-    fontSize: 16,
+    fontSize: 18,
     marginRight: 10,
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
     color: '#333',
+    padding: 0,
+  },
+  clearButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
+  clearButtonText: {
+    fontSize: 18,
+    color: '#999',
+    fontWeight: 'bold',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    gap: 10,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
   categoryButton: {
     display: 'none',

@@ -29,6 +29,10 @@ const studentSchemas = {
     last_name: Joi.string().required().min(2).max(100),
     email: Joi.string().email().optional(),
     password: Joi.string().required().min(6).max(255),
+    pin: Joi.string().required().length(4).pattern(/^\d{4}$/).messages({
+      'string.length': 'PIN must be exactly 4 digits',
+      'string.pattern.base': 'PIN must contain only numbers'
+    }),
     balance: Joi.number().precision(2).min(0).max(10000).default(0)
   }),
   
@@ -53,6 +57,10 @@ const personnelSchemas = {
     last_name: Joi.string().required().min(2).max(100),
     email: Joi.string().email().optional(),
     password: Joi.string().required().min(6).max(255),
+    pin: Joi.string().required().length(4).pattern(/^\d{4}$/).messages({
+      'string.length': 'PIN must be exactly 4 digits',
+      'string.pattern.base': 'PIN must contain only numbers'
+    }),
     balance: Joi.number().precision(2).min(0).max(10000).default(0)
   }),
   
@@ -133,6 +141,18 @@ const productSchemas = {
   })
 };
 
+// Inventory Record validation schemas
+const inventoryRecordSchemas = {
+  create: Joi.object({
+    product_id: Joi.number().integer().positive().required(),
+    change_type: Joi.string().valid('add', 'adjust', 'deduct').required(),
+    quantity_change: Joi.number().integer().required(),
+    previous_stock: Joi.number().integer().min(0).required(),
+    new_stock: Joi.number().integer().min(0).required(),
+    notes: Joi.string().allow('', null).max(1000).optional()
+  })
+};
+
 // Order validation schemas
 const orderSchemas = {
   create: Joi.object({
@@ -190,5 +210,6 @@ module.exports = {
   orderSchemas,
   reservationSchemas,
   productSchemas,
+  inventoryRecordSchemas,
   validate
 };

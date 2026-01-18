@@ -27,6 +27,8 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
     email: '',
     password: '',
     confirmPassword: '',
+    pin: '',
+    confirmPin: '',
     balance: 0
   });
   const [scanning, setScanning] = useState(false);
@@ -56,6 +58,19 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
         return;
       }
 
+      // Validate PIN
+      if (!formData.pin || !/^\d{4}$/.test(formData.pin)) {
+        setError('PIN must be exactly 4 digits');
+        setLoading(false);
+        return;
+      }
+
+      if (formData.pin !== formData.confirmPin) {
+        setError('PINs do not match');
+        setLoading(false);
+        return;
+      }
+
       if (!formData.rfid_card_id) {
         setError('RFID card is required. Click Scan RFID to read a card.');
         setLoading(false);
@@ -63,7 +78,7 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
       }
 
       // Prepare data for API
-      const { confirmPassword, ...apiData } = formData;
+      const { confirmPassword, confirmPin, ...apiData } = formData;
       const submitData = {
         ...apiData,
         balance: parseFloat(formData.balance.toString()) || 0
@@ -84,6 +99,8 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
         email: '',
         password: '',
         confirmPassword: '',
+        pin: '',
+        confirmPin: '',
         balance: 0
       });
       setScanning(false);
@@ -183,6 +200,8 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
       email: '',
       password: '',
       confirmPassword: '',
+      pin: '',
+      confirmPin: '',
       balance: 0
     });
     setScanning(false);
@@ -202,6 +221,8 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
         email: '',
         password: '',
         confirmPassword: '',
+        pin: '',
+        confirmPin: '',
         balance: 0
       });
       setScanning(false);
@@ -489,6 +510,77 @@ const CreateAccountModal: React.FC<CreateAccountModalProps> = ({
                   e.target.style.boxShadow = 'none';
                 }}
                 placeholder="Confirm password"
+              />
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <div style={{ flex: 1 }}>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                PIN (4 digits) *
+              </label>
+              <input
+                type="password"
+                name="pin"
+                value={formData.pin}
+                onChange={handleInputChange}
+                required
+                maxLength={4}
+                pattern="\d{4}"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '6px',
+                  outline: 'none',
+                  textAlign: 'center',
+                  fontSize: '18px',
+                  letterSpacing: '8px'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3B82F6';
+                  e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#D1D5DB';
+                  e.target.style.boxShadow = 'none';
+                }}
+                placeholder="0000"
+                inputMode="numeric"
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm PIN *
+              </label>
+              <input
+                type="password"
+                name="confirmPin"
+                value={formData.confirmPin}
+                onChange={handleInputChange}
+                required
+                maxLength={4}
+                pattern="\d{4}"
+                style={{
+                  width: '100%',
+                  padding: '12px 16px',
+                  border: '1px solid #D1D5DB',
+                  borderRadius: '6px',
+                  outline: 'none',
+                  textAlign: 'center',
+                  fontSize: '18px',
+                  letterSpacing: '8px'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#3B82F6';
+                  e.target.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.1)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#D1D5DB';
+                  e.target.style.boxShadow = 'none';
+                }}
+                placeholder="0000"
+                inputMode="numeric"
               />
             </div>
           </div>

@@ -48,6 +48,7 @@ CREATE TABLE students (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     email VARCHAR(255) UNIQUE,
     password VARCHAR(255) NOT NULL,
+    pin VARCHAR(255) NULL,
     is_active BOOLEAN DEFAULT TRUE,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_rfid (rfid_card_id),
@@ -64,6 +65,7 @@ CREATE TABLE personnel (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     email VARCHAR(255) UNIQUE,
     password VARCHAR(255) NOT NULL,
+    pin VARCHAR(255) NULL,
     is_active BOOLEAN DEFAULT TRUE,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_rfid (rfid_card_id),
@@ -100,6 +102,24 @@ CREATE TABLE IF NOT EXISTS TRANSACTION_ITEMS (
     INDEX idx_product_id (product_id)
 );
 
+-- Inventory records table for tracking inventory adjustments
+CREATE TABLE IF NOT EXISTS inventory_records (
+    record_id INT PRIMARY KEY AUTO_INCREMENT,
+    product_id INT NOT NULL,
+    change_type ENUM('add', 'adjust', 'deduct') NOT NULL,
+    quantity_change INT NOT NULL,
+    previous_stock INT NOT NULL,
+    new_stock INT NOT NULL,
+    notes TEXT,
+    user_id INT NULL,
+    personnel_id INT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_product_id (product_id),
+    INDEX idx_created_at (created_at),
+    INDEX idx_user_id (user_id),
+    INDEX idx_personnel_id (personnel_id)
+);
+
 -- Add foreign key constraints after all tables are created
 ALTER TABLE TRANSACTIONS 
 ADD CONSTRAINT fk_transactions_user_id 
@@ -116,6 +136,26 @@ FOREIGN KEY (transaction_id) REFERENCES TRANSACTIONS(transaction_id) ON DELETE C
 ALTER TABLE TRANSACTION_ITEMS 
 ADD CONSTRAINT fk_transaction_items_product_id 
 FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id) ON DELETE CASCADE;
+
+ALTER TABLE inventory_records 
+ADD CONSTRAINT fk_inventory_records_product_id 
+FOREIGN KEY (product_id) REFERENCES PRODUCT(product_id) ON DELETE CASCADE;
+
+ALTER TABLE inventory_records 
+ADD CONSTRAINT fk_inventory_records_user_id 
+FOREIGN KEY (user_id) REFERENCES students(user_id) ON DELETE SET NULL;
+
+ALTER TABLE inventory_records 
+ADD CONSTRAINT fk_inventory_records_personnel_id 
+FOREIGN KEY (personnel_id) REFERENCES personnel(personnel_id) ON DELETE SET NULL;
+
+-- Migration: Add PIN column to existing tables (for databases created before PIN feature)
+-- These statements are safe to run multiple times (will fail gracefully if column already exists)
+ALTER TABLE students 
+ADD COLUMN pin VARCHAR(255) NULL AFTER password;
+
+ALTER TABLE personnel 
+ADD COLUMN pin VARCHAR(255) NULL AFTER password;
 
 -- Insert default categories
 INSERT INTO categories (name, description) VALUES 

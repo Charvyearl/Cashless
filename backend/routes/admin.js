@@ -32,7 +32,7 @@ router.get('/test', (req, res) => {
 // Create new student account
 router.post('/students', validate(studentSchemas.create), async (req, res) => {
   try {
-    const { rfid_card_id, first_name, last_name, email, password, balance } = req.body;
+    const { rfid_card_id, first_name, last_name, email, password, pin, balance } = req.body;
     
     // Check if RFID card already exists in students table
     const existingStudent = await Student.findByRfidCardId(rfid_card_id);
@@ -61,6 +61,7 @@ router.post('/students', validate(studentSchemas.create), async (req, res) => {
       last_name,
       email,
       password,
+      pin,
       balance
     });
     
@@ -220,7 +221,7 @@ router.delete('/students/:id', async (req, res) => {
 // Create new personnel account
 router.post('/personnel', validate(personnelSchemas.create), async (req, res) => {
   try {
-    const { rfid_card_id, first_name, last_name, email, password, balance } = req.body;
+    const { rfid_card_id, first_name, last_name, email, password, pin, balance } = req.body;
     
     // Check if RFID card already exists in personnel table
     const existingPersonnel = await Personnel.findByRfidCardId(rfid_card_id);
@@ -249,6 +250,7 @@ router.post('/personnel', validate(personnelSchemas.create), async (req, res) =>
       last_name,
       email,
       password,
+      pin,
       balance
     });
     
