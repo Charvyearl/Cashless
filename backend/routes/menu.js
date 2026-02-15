@@ -342,11 +342,11 @@ router.delete('/products/:id', verifyToken, requireStaff, async (req, res) => {
 router.post('/inventory-records', verifyToken, requireStaff, validate(inventoryRecordSchemas.create), async (req, res) => {
   try {
     const { pool } = require('../config/database');
-    
+
     // Get user info from token - verify personnel exists in database
     let userId = null;
     let personnelId = null;
-    
+
     if (req.user.user_type === 'student') {
       userId = req.user.id;
     } else if (req.user.user_type === 'staff' || req.user.user_type === 'admin') {
@@ -368,13 +368,13 @@ router.post('/inventory-records', verifyToken, requireStaff, validate(inventoryR
         personnelId = null;
       }
     }
-    
+
     const recordData = {
       ...req.body,
       user_id: userId,
       personnel_id: personnelId
     };
-    
+
     const record = await InventoryRecord.create(recordData);
     res.status(201).json({ success: true, message: 'Inventory record created', data: record });
   } catch (error) {
@@ -387,7 +387,7 @@ router.post('/inventory-records', verifyToken, requireStaff, validate(inventoryR
 router.get('/inventory-records', verifyToken, requireStaff, async (req, res) => {
   try {
     const { product_id, user_id, personnel_id, start_date, end_date, page, limit } = req.query;
-    
+
     const options = {
       product_id: product_id ? parseInt(product_id) : undefined,
       user_id: user_id ? parseInt(user_id) : undefined,
@@ -397,12 +397,18 @@ router.get('/inventory-records', verifyToken, requireStaff, async (req, res) => 
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 100
     };
-    
+
     const records = await InventoryRecord.findAll(options);
     res.json({ success: true, data: records });
   } catch (error) {
     console.error('Get inventory records error:', error);
-    res.status(500).json({ success: false, message: 'Failed to get inventory records', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get inventory records',
+      error: error.message,
+      sqlMessage: error.sqlMessage,
+      code: error.code
+    });
   }
 });
 
@@ -456,7 +462,7 @@ router.get('/categories', async (req, res) => {
 router.post('/categories', verifyToken, requireStaff, async (req, res) => {
   try {
     const { name } = req.body;
-    
+
     if (!name || name.trim() === '') {
       return res.status(400).json({
         success: false,
@@ -497,16 +503,16 @@ router.delete('/categories/:id', verifyToken, requireStaff, async (req, res) => 
   try {
     const { id } = req.params;
     const category = await Category.getById(id);
-    
+
     if (!category) {
       return res.status(404).json({
         success: false,
         message: 'Category not found'
       });
     }
-    
+
     await category.delete();
-    
+
     res.json({
       success: true,
       message: 'Category deleted successfully'
