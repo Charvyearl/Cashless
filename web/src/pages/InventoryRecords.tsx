@@ -64,9 +64,14 @@ const InventoryRecords: React.FC = () => {
     try {
       const response = await menuAPI.getInventoryRecords({ limit: 500 });
       setRecords(response.data?.data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load inventory records:', error);
-      // Don't show alert, just log error - records are optional
+      const errorMessage = error.response?.data?.message || error.message || 'Unknown error';
+      const sqlMessage = error.response?.data?.sqlMessage;
+      const fullMessage = sqlMessage ? `${errorMessage}: ${sqlMessage}` : errorMessage;
+
+      // Alert the user so they can report the specific SQL error
+      alert(`Error loading records: ${fullMessage}`);
     }
   };
 
@@ -193,8 +198,8 @@ const InventoryRecords: React.FC = () => {
           <button
             onClick={() => navigate('/canteen')}
             className="flex items-center space-x-2 text-white transition-colors"
-            style={{ 
-              padding: '8px 16px', 
+            style={{
+              padding: '8px 16px',
               borderRadius: '6px',
               backgroundColor: '#5FA9FF',
               border: 'none'
@@ -560,7 +565,7 @@ const InventoryRecords: React.FC = () => {
             <h2 style={{ fontSize: '20px', fontWeight: '600', color: '#111827', marginBottom: '16px' }}>
               {adjustType === 'add' ? 'Add Stock' : 'Adjust Stock'} - {selectedProduct.product_name}
             </h2>
-            
+
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', fontSize: '14px', color: '#6B7280', marginBottom: '8px' }}>
                 Current Stock: <strong>{selectedProduct.stock_quantity}</strong>

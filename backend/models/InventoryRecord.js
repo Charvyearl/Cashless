@@ -62,7 +62,9 @@ class InventoryRecord {
     try {
       const { product_id, user_id, personnel_id, start_date, end_date, page, limit } = options;
 
-      let query = `SELECT ir.*, p.product_name,
+      let query = `SELECT ir.record_id, ir.product_id, ir.change_type, ir.quantity_change, 
+                   ir.previous_stock, ir.new_stock, ir.notes, ir.user_id, ir.personnel_id, ir.created_at,
+                   p.product_name,
                    COALESCE(CONCAT(s.first_name, ' ', s.last_name), CONCAT(per.first_name, ' ', per.last_name)) as user_name
                    FROM inventory_records ir
                    LEFT JOIN PRODUCT p ON ir.product_id = p.product_id
