@@ -105,8 +105,11 @@ class InventoryRecord {
         const limitNum = parseInt(limit, 10);
         const pageNum = page ? parseInt(page, 10) : 1;
         const offset = (pageNum - 1) * limitNum;
-        query += ` LIMIT ? OFFSET ?`;
-        params.push(limitNum, offset);
+
+        // Inline LIMIT/OFFSET to avoid prepared statement binding issues
+        // which can cause "Incorrect arguments to mysqld_stmt_execute"
+        query += ` LIMIT ${limitNum} OFFSET ${offset}`;
+        // params.push(limitNum, offset); // Removed binding
       }
 
       const [rows] = await pool.execute(query, params);
